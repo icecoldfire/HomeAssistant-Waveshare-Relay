@@ -1,0 +1,9 @@
+{
+    "domain": "waveshare_relay",
+    "name": "Waveshare Relay",
+    "version": "1.0.0",
+    "documentation": "https://github.com/yourusername/waveshare_relay",
+    "requirements": [],
+    "dependencies": [],
+    "codeowners": ["@yourusername"]
+  }
