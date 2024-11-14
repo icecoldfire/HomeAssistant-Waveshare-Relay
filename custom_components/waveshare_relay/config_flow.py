@@ -1,15 +1,18 @@
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
-from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.components.input_number import DOMAIN as INPUT_NUMBER_DOMAIN, InputNumber
-from homeassistant.components.input_number import SERVICE_SET_VALUE
-from homeassistant.const import ATTR_ENTITY_ID
-from .const import DOMAIN, CONF_FLASH_INTERVAL
+from homeassistant.exceptions import HomeAssistantError
+import logging
+import socket
 
+from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
+
+# Schema für die Benutzereingaben, einschließlich IP-Adresse und Port
 DATA_SCHEMA = vol.Schema({
-    vol.Required("ip_address"): str,
+    vol.Required("ip_address", default="10.0.3.4"): str,
+    vol.Required("port", default=502): vol.Coerce(int),
 })
 
 class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -19,28 +22,32 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
+        errors = {}
         if user_input is not None:
-            # Create the input number entity for flash interval
-            await self._create_flash_interval_entity()
-            return self.async_create_entry(title="Waveshare Relay", data=user_input)
+            try:
+                # Validate the IP address and port by attempting to connect
+                self._validate_connection(user_input["ip_address"], user_input["port"])
+                return self.async_create_entry(title="Waveshare Relay", data=user_input)
+            except CannotConnect:
+                errors["base"] = "cannot_connect"
+            except Exception as e:
+                _LOGGER.error("Unexpected error: %s", e)
+                errors["base"] = "unknown"
 
-        return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA)
+        return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
 
-    async def _create_flash_interval_entity(self):
-        """Create an input number entity for flash interval."""
-        entity_id = f"{INPUT_NUMBER_DOMAIN}.flash_interval"
-        entity_registry = er.async_get(self.hass)
+    def _validate_connection(self, ip_address, port):
+        """Validate the IP address and port by attempting to connect to the Modbus device."""
+        timeout = 5  # seconds
 
-        if entity_id not in entity_registry.entities:
-            component = EntityComponent(_LOGGER, INPUT_NUMBER_DOMAIN, self.hass)
-            await component.async_add_entities([
-                InputNumber(
-                    entity_id=entity_id,
-                    name="Flash Interval",
-                    initial=7,
-                    min_value=1,
-                    max_value=32767,
-                    step=1,
-                    unit_of_measurement="100ms"
-                )
-            ])
+        try:
+            # Create a TCP/IP socket
+            with socket.create_connection((ip_address, port), timeout=timeout) as sock:
+                # Attempt to connect
+                sock.sendall(b'')  # Send no data, just test connection
+        except (OSError, socket.timeout) as e:
+            # If an error occurs, we cannot connect
+            raise CannotConnect(f"Cannot connect to {ip_address}:{port}") from e
+
+class CannotConnect(HomeAssistantError):
+    """Error to indicate we cannot connect."""
