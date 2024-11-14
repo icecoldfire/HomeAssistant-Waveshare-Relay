@@ -66,9 +66,9 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
         if last_state and last_state.state:
             try:
                 self._attr_native_value = float(last_state.state)
-                _LOGGER.info("Restored %s to %s seconds", self._attr_name, self._attr_native_value)
+                _LOGGER.info("Restored %s to %s seconds", self.name, self._attr_native_value)
             except ValueError:
-                _LOGGER.warning("Could not restore state for %s", self._attr_name)
+                _LOGGER.warning("Could not restore state for %s", self.name)
                 self._attr_native_value = 5
         else:
             self._attr_native_value = 5
