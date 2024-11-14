@@ -25,6 +25,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 class WaveshareRelaySwitch(SwitchEntity):
     def __init__(self, hass, ip_address, port, relay_channel, device_name):
+        """Initialize the sensor."""
         self.hass = hass
         self._is_on = False
         self._ip_address = ip_address
@@ -35,6 +36,7 @@ class WaveshareRelaySwitch(SwitchEntity):
 
     @property
     def unique_id(self):
+        """Return a unique ID for this sensor."""
         return f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_switch"
 
     @property
@@ -52,6 +54,7 @@ class WaveshareRelaySwitch(SwitchEntity):
 
     @property
     def name(self):
+        """Return the name of the sensor."""
         return f"{self._device_name} Relay {self._relay_channel + 1} Switch"
 
     @property
