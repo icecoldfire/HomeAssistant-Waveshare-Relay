@@ -10,12 +10,13 @@ from .utils import _read_device_address, _read_software_version, _send_modbus_co
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    ip_address = config_entry.data['ip_address']  # Assuming 'ip_address' is a key in your config_entry
-    port = config_entry.data['port']  # Assuming 'port' is a key in your config_entry
+    ip_address = config_entry.data['ip_address']
+    port = config_entry.data['port']
+    device_name = config_entry.data['device_name']
 
     # Create 8 timers for 8 relay channels
     timers = [
-        WaveshareRelayTimer(hass, ip_address, port, f"Waveshare Relay {relay_channel + 1} Timer", relay_channel)
+        WaveshareRelayTimer(hass, ip_address, port, device_name, relay_channel)
         for relay_channel in range(8)
     ]
     async_add_entities(timers)
@@ -23,18 +24,18 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class WaveshareRelayTimer(SensorEntity):
     """Representation of a Timer Sensor."""
 
-    def __init__(self, hass, ip_address, port, name, relay_channel):
+    def __init__(self, hass, ip_address, port, device_name, relay_channel):
         """Initialize the sensor."""
         self.hass = hass
         self._ip_address = ip_address
         self._port = port
-        self._attr_name = name
-        self._relay_channel = relay_channel  # Store the relay channel
-        self._state = 0  # Start with 0 seconds
-        self._timer_task = None  # Task for countdown timer
+        self._device_name = device_name
+        self._relay_channel = relay_channel
+        self._state = 0
+        self._timer_task = None
 
         # Track the state of the corresponding switch
-        unique_id = f"{self._ip_address}_{self._relay_channel}_switch"
+        unique_id = f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_switch"
         entity_registry = er.async_get(self.hass)
         entity_id = entity_registry.async_get_entity_id("switch", DOMAIN, unique_id)
 
@@ -48,7 +49,7 @@ class WaveshareRelayTimer(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID for this sensor."""
-        return f"{self._ip_address}_{self._relay_channel}_timer"
+        return f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_timer"
 
     @property
     def device_info(self):
@@ -57,11 +58,15 @@ class WaveshareRelayTimer(SensorEntity):
 
         return {
             "identifiers": {(DOMAIN, self._ip_address)},
-            "name": f"Waveshare Relay {device_address}" if device_address is not None else "Waveshare Relay",
+            "name": self._device_name,  # Use the custom device name
             "model": "Modbus POE ETH Relay",
             "manufacturer": "Waveshare",
             "sw_version": software_version or "unknown",
         }
+
+    @property
+    def name(self):
+        return f"{self._device_name} Relay {self._relay_channel + 1} Timer"
 
     @property
     def state(self):
@@ -81,7 +86,7 @@ class WaveshareRelayTimer(SensorEntity):
 
         if new_state.state == "on":
             # Fetch the interval from the corresponding number entity
-            unique_id = f"{self._ip_address}_{self._relay_channel}_interval"
+            unique_id = f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_interval"
             entity_registry = er.async_get(self.hass)
             entity_id = entity_registry.async_get_entity_id("number", DOMAIN, unique_id)
 
@@ -126,10 +131,8 @@ class WaveshareRelayTimer(SensorEntity):
                 self._state = remaining_time
                 self.async_write_ha_state()  # Update the sensor state
         except asyncio.CancelledError:
-            # Handle the cancellation of the countdown task gracefully
             _LOGGER.info("Countdown task for relay channel %d cancelled", self._relay_channel)
         finally:
-            # Ensure the state reflects 0 when the countdown is complete
             if remaining_time <= 0:
                 self._state = 0
                 self.async_write_ha_state()

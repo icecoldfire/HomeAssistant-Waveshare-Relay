@@ -14,26 +14,28 @@ CONF_PORT = "port"
 async def async_setup_entry(hass, config_entry, async_add_entities):
     ip_address = config_entry.data[CONF_IP_ADDRESS]
     port = config_entry.data[CONF_PORT]
+    device_name = config_entry.data['device_name']
 
     switches = [
-        WaveshareRelaySwitch(hass, ip_address, port, relay_channel)
+        WaveshareRelaySwitch(hass, ip_address, port, relay_channel, device_name)
         for relay_channel in range(8)
     ]
 
     async_add_entities(switches)
 
 class WaveshareRelaySwitch(SwitchEntity):
-    def __init__(self, hass, ip_address, port, relay_channel):
+    def __init__(self, hass, ip_address, port, relay_channel, device_name):
         self.hass = hass
         self._is_on = False
         self._ip_address = ip_address
         self._port = port
         self._relay_channel = relay_channel
         self._status_task = None
+        self._device_name = device_name
 
     @property
     def unique_id(self):
-        return f"{self._ip_address}_{self._relay_channel}_switch"
+        return f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_switch"
 
     @property
     def device_info(self):
@@ -42,7 +44,7 @@ class WaveshareRelaySwitch(SwitchEntity):
 
         return {
             "identifiers": {(DOMAIN, self._ip_address)},
-            "name": f"Waveshare Relay {device_address}" if device_address is not None else "Waveshare Relay",
+            "name": self._device_name,  # Use the custom device name
             "model": "Modbus POE ETH Relay",
             "manufacturer": "Waveshare",
             "sw_version": software_version or "unknown",
@@ -50,14 +52,14 @@ class WaveshareRelaySwitch(SwitchEntity):
 
     @property
     def name(self):
-        return f"Waveshare Relay {self._relay_channel + 1} Switch"
+        return f"{self._device_name} Relay {self._relay_channel + 1} Switch"
 
     @property
     def is_on(self):
         return self._is_on
 
     async def async_turn_on(self, **kwargs):
-        unique_id = f"{self._ip_address}_{self._relay_channel}_interval"
+        unique_id = f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_interval"
         entity_registry = er.async_get(self.hass)
         entity_id = entity_registry.async_get_entity_id("number", DOMAIN, unique_id)
 
@@ -99,14 +101,12 @@ class WaveshareRelaySwitch(SwitchEntity):
             while self._is_on:
                 await asyncio.sleep(1)  # Wait for 1 second
                 try:
-                    # Pass the function and its arguments to async_add_executor_job
                     relay_status = await self.hass.async_add_executor_job(_read_relay_status, self._ip_address, self._port)
                     _LOGGER.info("Relay status for channel %d: %s", self._relay_channel, relay_status[self._relay_channel])
 
-                    # Update the switch state based on the relay status
                     if relay_status[self._relay_channel] == 0:
                         self._is_on = False
-                        self.async_write_ha_state()  # Notify Home Assistant of state change
+                        self.async_write_ha_state()
                         _LOGGER.info("Relay channel %d is off", self._relay_channel)
                 except Exception as e:
                     _LOGGER.error("Error reading relay status: %s", e)

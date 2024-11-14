@@ -9,10 +9,11 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-# Schema für die Benutzereingaben, einschließlich IP-Adresse und Port
+# Schema für die Benutzereingaben, einschließlich IP-Adresse, Port und Gerätename
 DATA_SCHEMA = vol.Schema({
     vol.Required("ip_address", default="10.0.3.4"): str,
     vol.Required("port", default=502): vol.Coerce(int),
+    vol.Required("device_name", default="Waveshare Relay"): str,
 })
 
 class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -27,7 +28,7 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 # Validate the IP address and port by attempting to connect
                 self._validate_connection(user_input["ip_address"], user_input["port"])
-                return self.async_create_entry(title="Waveshare Relay", data=user_input)
+                return self.async_create_entry(title=user_input["device_name"], data=user_input)
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except Exception as e:

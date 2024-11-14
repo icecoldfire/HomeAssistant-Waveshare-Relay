@@ -8,12 +8,13 @@ from .utils import _read_device_address, _read_software_version, _send_modbus_co
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    ip_address = config_entry.data['ip_address']  # Assuming 'ip_address' is a key in your config_entry
-    port = config_entry.data['port']  # Assuming 'port' is a key in your config_entry
+    ip_address = config_entry.data['ip_address']
+    port = config_entry.data['port']
+    device_name = config_entry.data['device_name']
 
     # Create 8 number entities for configuring the on-interval of each relay
     intervals = [
-        WaveshareRelayInterval(hass, ip_address, port, f"Waveshare Relay {relay_channel + 1} Interval", relay_channel)
+        WaveshareRelayInterval(hass, ip_address, port, device_name, relay_channel)
         for relay_channel in range(8)
     ]
 
@@ -22,25 +23,25 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class WaveshareRelayInterval(RestoreEntity, NumberEntity):
     _attr_icon = "mdi:update"
 
-    def __init__(self, hass, ip_address, port, name, relay_channel):
+    def __init__(self, hass, ip_address, port, device_name, relay_channel):
         self.hass = hass
         self._ip_address = ip_address
         self._port = port
-        self._attr_name = name
-        self._relay_channel = relay_channel  # Store the relay channel
+        self._device_name = device_name
+        self._relay_channel = relay_channel
         self._attr_editable = True
         self._attr_mode = 'slider'
         self._attr_native_min_value = 0
         self._attr_native_max_value = 600
         self._attr_native_step = 10
-        self._attr_device_class = "duration"  # Changed to duration for time intervals
-        self._attr_native_unit_of_measurement = "s"  # Changed to seconds
-        self._attr_native_value = None  # Start with None to ensure restoration
+        self._attr_device_class = "duration"
+        self._attr_native_unit_of_measurement = "s"
+        self._attr_native_value = None
 
     @property
     def unique_id(self):
         """Return a unique ID for this number."""
-        return f"{self._ip_address}_{self._relay_channel}_interval"
+        return f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_interval"
 
     @property
     def device_info(self):
@@ -49,11 +50,15 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
 
         return {
             "identifiers": {(DOMAIN, self._ip_address)},
-            "name": f"Waveshare Relay {device_address}" if device_address is not None else "Waveshare Relay",
+            "name": self._device_name,  # Use the custom device name
             "model": "Modbus POE ETH Relay",
             "manufacturer": "Waveshare",
             "sw_version": software_version or "unknown",
         }
+
+    @property
+    def name(self):
+        return f"{self._device_name} Relay {self._relay_channel + 1} Interval"
 
     async def async_added_to_hass(self):
         """Restore the previous state when Home Assistant starts."""
@@ -64,9 +69,9 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
                 _LOGGER.info("Restored %s to %s seconds", self._attr_name, self._attr_native_value)
             except ValueError:
                 _LOGGER.warning("Could not restore state for %s", self._attr_name)
-                self._attr_native_value = 5  # Default to 5 if restoration fails
+                self._attr_native_value = 5
         else:
-            self._attr_native_value = 5  # Default to 5 if no previous state exists
+            self._attr_native_value = 5
 
     @property
     def native_value(self):

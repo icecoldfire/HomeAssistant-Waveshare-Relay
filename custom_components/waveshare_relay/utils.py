@@ -49,7 +49,7 @@ def _send_modbus_command(ip_address, port, function_code, relay_address, interva
 
 def _read_relay_status(ip_address, port):
     """Send a Modbus command to read the relay status."""
-    sensing_code = [
+    message = [
         0x00, 0x01,
         0x00, 0x00,
         0x00, 0x06,
@@ -62,7 +62,7 @@ def _read_relay_status(ip_address, port):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.connect((ip_address, port))
-            sock.sendall(bytes(sensing_code))
+            sock.sendall(bytes(message))
             response = sock.recv(1024)
             _LOGGER.info("Received status response: %s", response.hex())
 
