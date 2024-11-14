@@ -1,13 +1,16 @@
 {
-    "name": "Waveshare Relay",
-    "content_in_root": false,
-    "domains": ["waveshare_relay"],
-    "country": "DE",
-    "homeassistant": "2021.12.0",
-    "render_readme": true,
-    "zip_release": false,
-    "filename": "custom_components/waveshare_relay",
-    "manifest": "custom_components/waveshare_relay/manifest.json",
-    "iot_class": "local_polling"
-  }
+  "name": "Waveshare Relay",
+  "content_in_root": false,
+  "domains": ["waveshare_relay"],
+  "country": ["EN", "DE"],
+  "homeassistant": "2024.11.0",
+  "render_readme": true,
+  "zip_release": false,
+  "filename": "custom_components/waveshare_relay",
+  "manifest": "custom_components/waveshare_relay/manifest.json",
+  "iot_class": "local_polling",
+  "codeowners": ["@sebastianfs"],
+  "documentation": "https://github.com/sebastianfs/waveshare_relay",
+  "issue_tracker": "https://github.com/sebastianfs/waveshare_relay/issues"
+}
   
