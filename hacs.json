@@ -9,8 +9,8 @@
   "filename": "custom_components/waveshare_relay",
   "manifest": "custom_components/waveshare_relay/manifest.json",
   "iot_class": "local_polling",
-  "codeowners": ["@sebastianfs"],
-  "documentation": "https://github.com/sebastianfs/waveshare_relay",
-  "issue_tracker": "https://github.com/sebastianfs/waveshare_relay/issues"
+  "codeowners": ["@sebastianfs82"],
+  "documentation": "https://github.com/sebastianfs82/HomeAssistant-Waveshare-Relay",
+  "issue_tracker": "https://github.com/sebastianfs82/HomeAssistant-Waveshare-Relay/issues"
 }
   
