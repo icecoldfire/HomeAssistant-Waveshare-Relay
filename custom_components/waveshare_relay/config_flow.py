@@ -11,7 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # Schema für die Benutzereingaben, einschließlich IP-Adresse, Port und Gerätename
 DATA_SCHEMA = vol.Schema({
-    vol.Required("ip_address", default="10.0.3.4"): str,
+    vol.Required("ip_address"): str,
     vol.Required("port", default=502): vol.Coerce(int),
     vol.Required("device_name", default="Waveshare Relay"): str,
 })
