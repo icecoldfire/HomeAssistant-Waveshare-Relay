@@ -1,7 +1,9 @@
 import logging
 from homeassistant.components.number import NumberEntity
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.restore_state import RestoreEntity
-from .const import DOMAIN  # Import the DOMAIN constant
+from .const import DOMAIN
+from .utils import _read_device_address, _read_software_version, _send_modbus_command
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,13 +44,15 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
 
     @property
     def device_info(self):
-        """Return device information about this Waveshare Relay."""
+        device_address = _read_device_address(self._ip_address, self._port)
+        software_version = _read_software_version(self._ip_address, self._port)
+
         return {
             "identifiers": {(DOMAIN, self._ip_address)},
-            "name": "Waveshare Relay",
+            "name": f"Waveshare Relay {device_address}" if device_address is not None else "Waveshare Relay",
             "model": "Modbus POE ETH Relay",
             "manufacturer": "Waveshare",
-            "sw_version": "1.0",  # Replace with dynamic version if available
+            "sw_version": software_version or "unknown",
         }
 
     async def async_added_to_hass(self):

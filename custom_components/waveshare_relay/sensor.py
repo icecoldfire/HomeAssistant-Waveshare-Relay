@@ -2,8 +2,10 @@ import asyncio
 import logging
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import TIME_SECONDS
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
-from .const import DOMAIN  # Import the DOMAIN constant
+from .const import DOMAIN
+from .utils import _read_device_address, _read_software_version, _send_modbus_command
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,10 +34,16 @@ class WaveshareRelayTimer(SensorEntity):
         self._timer_task = None  # Task for countdown timer
 
         # Track the state of the corresponding switch
-        switch_entity_id = f"switch.waveshare_relay_{self._relay_channel + 1}_switch"
-        async_track_state_change_event(
-            self.hass, switch_entity_id, self._switch_state_changed
-        )
+        unique_id = f"{self._ip_address}_{self._relay_channel}_switch"
+        entity_registry = er.async_get(self.hass)
+        entity_id = entity_registry.async_get_entity_id("switch", DOMAIN, unique_id)
+
+        if entity_id:
+            async_track_state_change_event(
+                self.hass, entity_id, self._switch_state_changed
+            )
+        else:
+            _LOGGER.error("Could not find entity with unique_id: %s", unique_id)
 
     @property
     def unique_id(self):
@@ -44,13 +52,15 @@ class WaveshareRelayTimer(SensorEntity):
 
     @property
     def device_info(self):
-        """Return device information about this Waveshare Relay."""
+        device_address = _read_device_address(self._ip_address, self._port)
+        software_version = _read_software_version(self._ip_address, self._port)
+
         return {
             "identifiers": {(DOMAIN, self._ip_address)},
-            "name": "Waveshare Relay",
+            "name": f"Waveshare Relay {device_address}" if device_address is not None else "Waveshare Relay",
             "model": "Modbus POE ETH Relay",
             "manufacturer": "Waveshare",
-            "sw_version": "1.0",  # Replace with dynamic version if available
+            "sw_version": software_version or "unknown",
         }
 
     @property
@@ -71,16 +81,23 @@ class WaveshareRelayTimer(SensorEntity):
 
         if new_state.state == "on":
             # Fetch the interval from the corresponding number entity
-            interval_entity_id = f"number.waveshare_relay_{self._relay_channel + 1}_interval"
-            interval_state = self.hass.states.get(interval_entity_id)
-            if interval_state:
-                try:
-                    interval = int(float(interval_state.state))
-                except ValueError:
-                    _LOGGER.error("Invalid interval value for %s: %s", interval_entity_id, interval_state.state)
-                    interval = 5  # Default to 5 seconds if conversion fails
+            unique_id = f"{self._ip_address}_{self._relay_channel}_interval"
+            entity_registry = er.async_get(self.hass)
+            entity_id = entity_registry.async_get_entity_id("number", DOMAIN, unique_id)
+
+            if entity_id:
+                interval_state = self.hass.states.get(entity_id)
+                if interval_state:
+                    try:
+                        interval = int(float(interval_state.state))
+                    except ValueError:
+                        _LOGGER.error("Invalid interval value for %s: %s", entity_id, interval_state.state)
+                        interval = 5  # Default to 5 seconds if conversion fails
+                else:
+                    interval = 5  # Default to 5 seconds if not found
             else:
-                interval = 5  # Default to 5 seconds if not found
+                _LOGGER.error("Could not find entity with unique_id: %s", unique_id)
+                interval = 5
 
             # Start the countdown
             self._state = interval
