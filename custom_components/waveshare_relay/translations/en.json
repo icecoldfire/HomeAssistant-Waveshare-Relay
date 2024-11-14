@@ -1,14 +1,15 @@
 {
-    "config": {
-      "step": {
-        "user": {
-          "title": "Setup Waveshare Relay",
-          "description": "Configure your Waveshare Relay device.",
-          "data": {
-            "ip_address": "IP Address"
-          }
+  "config": {
+    "step": {
+      "user": {
+        "title": "Setup Waveshare Relay",
+        "description": "Configure your Waveshare Relay device.",
+        "data": {
+          "ip_address": "IP Address",
+          "port": "Port",
+          "device_name": "Device Name"
         }
       }
     }
   }
-  
+}

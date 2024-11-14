@@ -1,0 +1,15 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Einrichtung des Waveshare Relais",
+        "description": "Konfigurieren Sie Ihr Waveshare Relaisgerät.",
+        "data": {
+          "ip_address": "IP-Adresse",
+          "port": "Port",
+          "device_name": "Gerätename"
+        }
+      }
+    }
+  }
+}
