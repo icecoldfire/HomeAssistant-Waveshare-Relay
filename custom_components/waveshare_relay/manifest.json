@@ -1,7 +1,7 @@
 {
   "domain": "waveshare_relay",
   "name": "Waveshare Relay",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "documentation": "https://github.com/sebastianfs82/HomeAssistant-Waveshare-Relay",
   "requirements": [],
   "dependencies": [],
