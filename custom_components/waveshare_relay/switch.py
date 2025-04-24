@@ -15,10 +15,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     ip_address = config_entry.data[CONF_IP_ADDRESS]
     port = config_entry.data[CONF_PORT]
     device_name = config_entry.data['device_name']
+    relay_channels = config_entry.data['channels']
 
     switches = [
         WaveshareRelaySwitch(hass, ip_address, port, relay_channel, device_name)
-        for relay_channel in range(8)
+        for relay_channel in range(relay_channels)
     ]
 
     async_add_entities(switches)

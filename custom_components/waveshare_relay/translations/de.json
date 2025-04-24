@@ -7,7 +7,8 @@
         "data": {
           "ip_address": "IP-Adresse",
           "port": "Port",
-          "device_name": "Gerätename"
+          "device_name": "Gerätename",
+          "channels": "Anzahl der Kanäle"
         }
       }
     }

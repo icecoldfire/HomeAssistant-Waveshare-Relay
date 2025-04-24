@@ -11,11 +11,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     ip_address = config_entry.data['ip_address']
     port = config_entry.data['port']
     device_name = config_entry.data['device_name']
+    relay_channels = config_entry.data['channels']
 
     # Create 8 number entities for configuring the on-interval of each relay
     intervals = [
         WaveshareRelayInterval(hass, ip_address, port, device_name, relay_channel)
-        for relay_channel in range(8)
+        for relay_channel in range(relay_channels)
     ]
 
     async_add_entities(intervals)

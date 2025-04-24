@@ -14,6 +14,7 @@ DATA_SCHEMA = vol.Schema({
     vol.Required("ip_address"): str,
     vol.Required("port", default=502): vol.Coerce(int),
     vol.Required("device_name", default="Waveshare Relay"): str,
+    vol.Required("channels", default=8): vol.Coerce(int),
 })
 
 class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -25,10 +26,16 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors = {}
         if user_input is not None:
+            # Validate that the channels are larger than 0
+            if user_input["channels"] <= 0:
+                errors["channels"] = "invalid_channels"
+
             try:
                 # Validate the IP address and port by attempting to connect
                 self._validate_connection(user_input["ip_address"], user_input["port"])
-                return self.async_create_entry(title=user_input["device_name"], data=user_input)
+
+                if not errors:
+                    return self.async_create_entry(title=user_input["device_name"], data=user_input)
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except Exception as e:
