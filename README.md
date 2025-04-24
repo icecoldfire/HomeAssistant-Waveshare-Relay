@@ -38,6 +38,7 @@ This is a custom integration for Home Assistant to control the Waveshare Modbus 
    - Click "Add Integration" and search for "Waveshare Relay".
    - Follow the setup wizard to enter the IP address and port of your Waveshare Relay Board.
    - Optionally, enter a custom name for the device to easily identify it.
+   - Optionally, enter the amount of relay channels you device has, we take as default 8.
 
 ## Troubleshooting
 

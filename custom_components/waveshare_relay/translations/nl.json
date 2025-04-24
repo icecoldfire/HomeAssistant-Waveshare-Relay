@@ -5,8 +5,8 @@
         "title": "Waveshare Relay instellen",
         "description": "Configureer Waveshare Relay device.",
         "data": {
-          "ip_address": "IP Adres",
-          "port": "Port",
+          "ip_address": "IP-Adres",
+          "port": "Poort",
           "device_name": "Apparaatnaam",
           "channels": "Aantal kanalen"
         }
