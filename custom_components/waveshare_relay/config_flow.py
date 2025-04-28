@@ -11,10 +11,10 @@ _LOGGER = logging.getLogger(__name__)
 
 # Schema für die Benutzereingaben, einschließlich IP-Adresse, Port und Gerätename
 DATA_SCHEMA = vol.Schema({
-    vol.Required("ip_address"): str,
+    vol.Required("ip_address"): vol.Coerce(str),
     vol.Required("port", default=502): vol.Coerce(int),
-    vol.Required("device_name", default="Waveshare Relay"): str,
-    vol.Required("channels", default=8): vol.Coerce(int),
+    vol.Required("device_name", default="Waveshare Relay"): vol.Coerce(str),
+    vol.Required("channels", default=8): vol.All(vol.Coerce(int), vol.Range(min=1, max=32)),
 })
 
 class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
