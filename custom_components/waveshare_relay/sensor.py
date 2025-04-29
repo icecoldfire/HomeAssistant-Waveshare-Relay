@@ -15,7 +15,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     device_name = config_entry.data['device_name']
     relay_channels = config_entry.data['channels']
 
-    # Create 8 timers for 8 relay channels
     timers = [
         WaveshareRelayTimer(hass, ip_address, port, device_name, relay_channel)
         for relay_channel in range(relay_channels)
