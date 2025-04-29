@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import TIME_SECONDS
+from homeassistant.const import UnitOfTime
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 from .const import DOMAIN
@@ -78,7 +78,7 @@ class WaveshareRelayTimer(SensorEntity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        return TIME_SECONDS
+        return UnitOfTime.SECONDS
 
     async def _switch_state_changed(self, event):
         """Handle changes to the switch state."""
