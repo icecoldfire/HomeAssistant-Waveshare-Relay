@@ -3,12 +3,12 @@
   "content_in_root": false,
   "domains": ["waveshare_relay"],
   "country": "de",
-  "homeassistant": "2023.1.0",
+  "homeassistant": "2025.4.0",
   "render_readme": true,
   "zip_release": false,
   "filename": "custom_components/waveshare_relay",
   "iot_class": "local_polling",
-  "codeowners": ["@sebastianfs82"],
+  "codeowners": ["@sebastianfs82", "icecoldfire"],
   "documentation": "https://github.com/sebastianfs82/HomeAssistant-Waveshare-Relay",
   "issue_tracker": "https://github.com/sebastianfs82/HomeAssistant-Waveshare-Relay/issues"
 }
