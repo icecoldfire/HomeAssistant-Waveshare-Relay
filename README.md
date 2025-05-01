@@ -20,7 +20,7 @@ This is a custom integration for Home Assistant to control the Waveshare Modbus 
 
 1. **Device Configuration:**
 
-   - Install the configuration software called Vircom from https://www.waveshare.com/wiki/Modbus_POE_ETH_Relay_30CH#Software_Installation
+   - Install the configuration software called Vircom from: https://www.waveshare.com/wiki/Modbus_POE_ETH_Relay_30CH#Software_Installation
  
    - Start the Vircom configuration software and connect to device.
 
