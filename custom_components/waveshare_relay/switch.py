@@ -100,19 +100,31 @@ class WaveshareRelaySwitch(SwitchEntity):
                 _LOGGER.info("Status check task for channel %d cancelled", self._relay_channel)
 
     async def check_relay_status(self):
-        """Continuously check the relay status every 1 second."""
+        """Continuously check the relay status for a specific channel every 1 second."""
+        _LOGGER.debug("Starting status check task for channel %d, the switch is in stage: %s", self._relay_channel, self._is_on)
         try:
             while self._is_on:
+                _LOGGER.debug("Checking relay status for channel %d [Before sleep]", self._relay_channel)
                 await asyncio.sleep(1)  # Wait for 1 second
+                _LOGGER.debug("Checking relay status for channel %d [Out sleep]", self._relay_channel)
                 try:
-                    relay_status = await self.hass.async_add_executor_job(_read_relay_status, self._ip_address, self._port)
-                    _LOGGER.info("Relay status for channel %d: %s", self._relay_channel, relay_status[self._relay_channel])
+                    # Read the status of the specific relay channel
+                    relay_status = await self.hass.async_add_executor_job(
+                        _read_relay_status, self._ip_address, self._port, self._relay_channel, 1
+                    )
+                    _LOGGER.debug("Relay status for channel %d: %s", self._relay_channel, relay_status)
 
-                    if relay_status[self._relay_channel] == 0:
-                        self._is_on = False
-                        self.async_write_ha_state()
-                        _LOGGER.info("Relay channel %d is off", self._relay_channel)
+                    if relay_status and len(relay_status) > 0:
+                        if relay_status[0] == 0:
+                            _LOGGER.info("Relay channel %d is off, stopping status check", self._relay_channel)
+                            self._is_on = False
+                            self.async_write_ha_state()
+                            break
+                    else:
+                        _LOGGER.error("Invalid relay status for channel %d: %s", self._relay_channel, relay_status)
                 except Exception as e:
-                    _LOGGER.error("Error reading relay status: %s", e)
+                    _LOGGER.error("Error reading relay status for channel %d: %s", self._relay_channel, e)
         except asyncio.CancelledError:
             _LOGGER.info("Status check task for channel %d cancelled", self._relay_channel)
+        finally:
+            _LOGGER.info("Status check task for channel %d has ended", self._relay_channel)
