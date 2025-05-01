@@ -25,6 +25,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities(switches)
 
 class WaveshareRelaySwitch(SwitchEntity):
+    has_entity_name = True
+
     def __init__(self, hass, ip_address, port, relay_channel, device_name):
         """Initialize the sensor."""
         self.hass = hass
@@ -34,6 +36,15 @@ class WaveshareRelaySwitch(SwitchEntity):
         self._relay_channel = relay_channel
         self._status_task = None
         self._device_name = device_name
+
+    async def async_added_to_hass(self):
+        """Subscribe to events when the entity is added to Home Assistant."""
+        await super().async_added_to_hass()
+        self.hass.bus.async_listen("state_changed", self._handle_state_change)
+
+    async def _handle_state_change(self, event):
+        """Handle state change events."""
+        _LOGGER.debug("State changed: %s", event)
 
     @property
     def unique_id(self):
@@ -56,7 +67,7 @@ class WaveshareRelaySwitch(SwitchEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self._device_name} Relay {self._relay_channel + 1} Switch"
+        return f"{self._relay_channel + 1} Switch"
 
     @property
     def is_on(self):

@@ -11,6 +11,10 @@
           "channels": "Number of Channels"
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the device.",
+      "unknown": "An unknown error occurred."
     }
   }
 }

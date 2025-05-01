@@ -1,6 +1,10 @@
 import argparse
 import time
+import logging
 from custom_components.waveshare_relay.utils import _read_relay_status, _send_modbus_command
+
+# Configure logging to output to the console
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 def main_menu(ip_address, port):
     while True:

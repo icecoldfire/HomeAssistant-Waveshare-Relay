@@ -26,21 +26,37 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors = {}
         if user_input is not None:
-            # Validate that the channels are larger than 0
-            if user_input["channels"] <= 0:
-                errors["channels"] = "invalid_channels"
+            # Check for duplicate entries
+            existing_entries = self._async_current_entries()
+            for entry in existing_entries:
+                if entry.data.get("ip_address") == user_input["ip_address"]:
+                    errors["base"] = "already_configured"
+                    break
 
-            try:
-                # Validate the IP address and port by attempting to connect
-                self._validate_connection(user_input["ip_address"], user_input["port"])
+            if not errors:
+                # Validate that the channels are larger than 0
+                if user_input["channels"] <= 0:
+                    errors["channels"] = "invalid_channels"
 
-                if not errors:
-                    return self.async_create_entry(title=user_input["device_name"], data=user_input)
-            except CannotConnect:
-                errors["base"] = "cannot_connect"
-            except Exception as e:
-                _LOGGER.error("Unexpected error: %s", e)
-                errors["base"] = "unknown"
+                try:
+                    # Test the connection before creating the entry
+                    self._validate_connection(user_input["ip_address"], user_input["port"])
+
+                    if not errors:
+                        return self.async_create_entry(
+                            title=user_input["device_name"],
+                            data={
+                                "ip_address": user_input["ip_address"],
+                                "port": user_input["port"],
+                                "device_name": user_input["device_name"],
+                                "channels": user_input["channels"]
+                            }
+                        )
+                except CannotConnect:
+                    errors["base"] = "cannot_connect"
+                except Exception as e:
+                    _LOGGER.error("Unexpected error: %s", e)
+                    errors["base"] = "unknown"
 
         return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
 

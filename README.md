@@ -61,6 +61,15 @@ This is a custom integration for Home Assistant to control the Waveshare Modbus 
    - Optionally, enter a custom name for the device to easily identify it.
    - Optionally, enter the amount of relay channels your device has; the default is 8.
 
+## Removal Instructions
+
+To remove the Waveshare Relay integration:
+
+1. Go to **Settings** > **Devices & Services** in Home Assistant.
+2. Locate the Waveshare Relay integration and click on it.
+3. Click **Delete** to remove the integration.
+4. Optionally, remove the custom component files from the `custom_components/waveshare_relay` directory.
+
 ## Troubleshooting
 
 - Ensure the IP address of the relay board is correct.

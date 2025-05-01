@@ -23,6 +23,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 class WaveshareRelayTimer(SensorEntity):
     _attr_icon = "mdi:timer-outline"
+    has_entity_name = True
 
     def __init__(self, hass, ip_address, port, device_name, relay_channel):
         """Initialize the sensor."""
@@ -67,7 +68,7 @@ class WaveshareRelayTimer(SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self._device_name} Relay {self._relay_channel + 1} Timer"
+        return f"{self._relay_channel + 1} Timer"
 
     @property
     def state(self):

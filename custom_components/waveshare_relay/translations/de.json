@@ -11,6 +11,10 @@
           "channels": "Anzahl der Kanäle"
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum Gerät fehlgeschlagen.",
+      "unknown": "Ein unbekannter Fehler ist aufgetreten."
     }
   }
 }

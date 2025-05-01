@@ -5,6 +5,7 @@
   "documentation": "https://github.com/sebastianfs82/HomeAssistant-Waveshare-Relay",
   "requirements": [],
   "dependencies": [],
-  "codeowners": ["@sebastianfs82"],
-  "config_flow": true
+  "codeowners": ["@sebastianfs82", "@icecoldfire"],
+  "config_flow": true,
+  "iot_class": "local_polling"
 }

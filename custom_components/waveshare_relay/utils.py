@@ -40,6 +40,7 @@ def _send_modbus_command(ip_address, port, function_code, relay_address, interva
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.connect((ip_address, port))
+            _LOGGER.debug("Message to send: %s", bytes(message).hex())
             sock.sendall(bytes(message))
             response = sock.recv(1024)
             _LOGGER.info("Received response: %s", response.hex())

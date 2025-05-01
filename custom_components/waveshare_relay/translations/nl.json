@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Waveshare Relay instellen",
-        "description": "Configureer Waveshare Relay device.",
+        "description": "Configureer Waveshare Relay apparaat.",
         "data": {
           "ip_address": "IP-Adres",
           "port": "Poort",
@@ -11,6 +11,10 @@
           "channels": "Aantal kanalen"
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met het apparaat.",
+      "unknown": "Er is een onbekende fout opgetreden."
     }
   }
 }

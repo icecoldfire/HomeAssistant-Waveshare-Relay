@@ -23,6 +23,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 class WaveshareRelayInterval(RestoreEntity, NumberEntity):
     _attr_icon = "mdi:update"
+    has_entity_name = True
 
     def __init__(self, hass, ip_address, port, device_name, relay_channel):
         self.hass = hass
@@ -34,7 +35,7 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
         self._attr_mode = 'slider'
         self._attr_native_min_value = 0
         self._attr_native_max_value = 600
-        self._attr_native_step = 10
+        self._attr_native_step = 1
         self._attr_device_class = "duration"
         self._attr_native_unit_of_measurement = "s"
         self._attr_native_value = None
@@ -60,7 +61,7 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self._device_name} Relay {self._relay_channel + 1} Interval"
+        return f"{self._relay_channel + 1} Interval"
 
     async def async_added_to_hass(self):
         """Restore the previous state when Home Assistant starts."""
