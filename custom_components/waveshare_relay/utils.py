@@ -2,8 +2,35 @@
 import socket
 import logging
 import struct
+from .const import MODBUS_EXCEPTION_MESSAGES
 
 _LOGGER = logging.getLogger(__name__)
+
+def _send_modbus_message(ip_address, port, message, function_code):
+    """Send a Modbus TCP message and return the response."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            _LOGGER.debug("Attempting to connect to %s:%d", ip_address, port)
+            sock.connect((ip_address, port))
+            _LOGGER.debug("Connection established")
+
+            _LOGGER.debug("Sending message: %s", bytes(message).hex())
+            sock.sendall(bytes(message))
+
+            response = sock.recv(1024)
+            _LOGGER.debug("Received response: %s", response.hex())
+
+            # Check for exception response if function_code is provided
+            if len(response) == 9 and response[7] == (function_code + 0x80):
+                exception_code = response[8]
+                exception = MODBUS_EXCEPTION_MESSAGES.get(exception_code, {"name": "Unknown Exception", "description": "No description available"})
+                _LOGGER.error("Modbus exception response: Code %02X - %s: %s.", exception_code, exception["name"], exception["description"])
+                return None
+
+            return response
+    except Exception as e:
+        _LOGGER.error("Socket error: %s", e)
+        return None
 
 def _send_modbus_command(ip_address, port, function_code, relay_address, interval=0):
     """Send a Modbus TCP command and return the response."""
@@ -37,17 +64,7 @@ def _send_modbus_command(ip_address, port, function_code, relay_address, interva
             0x00, 0x01                                   # Quantity of Registers
         ]
 
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.connect((ip_address, port))
-            _LOGGER.debug("Message to send: %s", bytes(message).hex())
-            sock.sendall(bytes(message))
-            response = sock.recv(1024)
-            _LOGGER.info("Received response: %s", response.hex())
-            return response
-    except Exception as e:
-        _LOGGER.error("Socket error: %s", e)
-        return None
+    return _send_modbus_message(ip_address, port, message, function_code)
 
 def _read_relay_status(ip_address, port, start_channel, num_channels):
     """Send a Modbus TCP command to read the relay status for specific channels."""
@@ -65,13 +82,14 @@ def _read_relay_status(ip_address, port, start_channel, num_channels):
     protocol_id = 0x0000
     length = 0x06  # Length of the remaining message (unit_id + function_code + data)
     unit_id = 0x01
+    function_code = 0x01  # Function code for reading coils
 
     message = [
         transaction_id >> 8, transaction_id & 0xFF,  # Transaction Identifier
         protocol_id >> 8, protocol_id & 0xFF,        # Protocol Identifier
         length >> 8, length & 0xFF,                  # Length
         unit_id,                                     # Unit Identifier
-        0x01,                                       # Command: Query relay status
+        function_code,                                       # Command: Query relay status
         (start_channel >> 8) & 0xFF,                # High byte of starting address
         start_channel & 0xFF,                       # Low byte of starting address
         (quantity_of_relays >> 8) & 0xFF,           # High byte of quantity
@@ -80,38 +98,27 @@ def _read_relay_status(ip_address, port, start_channel, num_channels):
 
     _LOGGER.debug("Constructed Modbus TCP message: %s", message)
 
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            _LOGGER.debug("Attempting to connect to %s:%d", ip_address, port)
-            sock.connect((ip_address, port))
-            _LOGGER.debug("Connection established")
+    response = _send_modbus_message(ip_address, port, message, function_code)
+    if response is None:
+        return None
 
-            _LOGGER.debug("Sending message: %s", bytes(message).hex())
-            sock.sendall(bytes(message))
+    # Validate response length
+    if len(response) < 9 + byte_count:
+        _LOGGER.error("Invalid response length: %s", response.hex())
+        return None
 
-            response = sock.recv(1024)
-            _LOGGER.debug("Received response: %s", response.hex())
+    # Extract relay statuses from the response
+    relay_status_bytes = response[9:9 + byte_count]
+    _LOGGER.debug("Relay status bytes: %s", relay_status_bytes)
 
-            # Validate response length
-            if len(response) < 9 + byte_count:
-                _LOGGER.error("Invalid response length: %s", response.hex())
-                return None
+    relay_status = []
+    for byte in relay_status_bytes:
+        relay_status.extend([(byte >> bit) & 1 for bit in range(8)])
 
-            # Extract relay statuses from the response
-            relay_status_bytes = response[9:9 + byte_count]
-            _LOGGER.debug("Relay status bytes: %s", relay_status_bytes)
-
-            relay_status = []
-            for byte in relay_status_bytes:
-                relay_status.extend([(byte >> bit) & 1 for bit in range(8)])
-
-            # Trim the relay_status list to the exact number of channels
-            relay_status = relay_status[:num_channels]
-            _LOGGER.info("Relay statuses: %s", relay_status)
-            return relay_status
-    except Exception as e:
-        _LOGGER.error("Socket error while reading status: %s", e)
-        raise
+    # Trim the relay_status list to the exact number of channels
+    relay_status = relay_status[:num_channels]
+    _LOGGER.info("Relay statuses: %s", relay_status)
+    return relay_status
 
 def _read_device_address(ip_address, port):
     """Read the device address from the relay board."""
