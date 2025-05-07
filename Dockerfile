@@ -10,6 +10,9 @@ COPY requirements.txt ./
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Add coverage dependencies
+RUN pip install pytest-cov
+
 # Copy the entire project into the container
 COPY . .
 

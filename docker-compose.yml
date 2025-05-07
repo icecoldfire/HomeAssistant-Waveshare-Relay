@@ -8,6 +8,6 @@ services:
       - ./custom_components:/app/custom_components
       - ./pytest.ini:/app/pytest.ini
     working_dir: /app
-    command: pytest --disable-warnings
+    command: pytest --disable-warnings --cov=custom_components --cov-report=term-missing
     environment:
       - PYTHONUNBUFFERED=1
