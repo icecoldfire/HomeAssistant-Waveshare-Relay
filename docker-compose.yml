@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  test:
+    build: .
+    volumes:
+      - ./tests:/app/tests
+      - ./custom_components:/app/custom_components
+      - ./pytest.ini:/app/pytest.ini
+    working_dir: /app
+    command: pytest --disable-warnings
+    environment:
+      - PYTHONUNBUFFERED=1
