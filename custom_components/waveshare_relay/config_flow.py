@@ -86,16 +86,16 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         user_input["ip_address"], user_input["port"])
 
                     if not errors:
-                        self.async_update_reload_and_abort(
+                        return self.async_update_reload_and_abort(
                             entry,
                             data={
                                 "ip_address": user_input["ip_address"],
                                 "port": user_input["port"],
                                 "device_name": user_input["device_name"],
                                 "channels": user_input["channels"]
-                            }
+                            },
+                            reason="reconfigured"
                         )
-                    return self.async_abort(reason="reconfigured")
                 except CannotConnect:
                     errors["base"] = "cannot_connect"
                 except Exception as e:
