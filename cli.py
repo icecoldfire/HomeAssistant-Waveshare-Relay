@@ -1,10 +1,16 @@
 import argparse
 import time
 import logging
-from custom_components.waveshare_relay.utils import _read_relay_status, _send_modbus_command
+from custom_components.waveshare_relay.utils import (
+    _read_relay_status,
+    _send_modbus_command,
+)
 
 # Configure logging to output to the console
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
 
 def main_menu(ip_address, port):
     while True:
@@ -20,7 +26,9 @@ def main_menu(ip_address, port):
             start_channel = channel - 1
             num_channels = 1
 
-            relay_status = _read_relay_status(ip_address, port, start_channel, num_channels)
+            relay_status = _read_relay_status(
+                ip_address, port, start_channel, num_channels
+            )
             if relay_status is not None:
                 print(f"Status of channel {channel}: {relay_status[0]}")
             else:
@@ -33,9 +41,13 @@ def main_menu(ip_address, port):
             relay_address = channel - 1
             interval_deciseconds = interval * 10  # Convert seconds to deciseconds
 
-            response = _send_modbus_command(ip_address, port, 0x05, relay_address, interval_deciseconds)
+            response = _send_modbus_command(
+                ip_address, port, 0x05, relay_address, interval_deciseconds
+            )
             if response is not None:
-                print(f"Command sent to channel {channel} with interval {interval} seconds.")
+                print(
+                    f"Command sent to channel {channel} with interval {interval} seconds."
+                )
             else:
                 print("Failed to send command.")
 
@@ -46,10 +58,13 @@ def main_menu(ip_address, port):
         else:
             print("Invalid choice. Please try again.")
 
+
 def main():
     parser = argparse.ArgumentParser(description="CLI for Waveshare Relay Control")
     parser.add_argument("--ip", required=True, help="IP address of the Waveshare Relay")
-    parser.add_argument("--port", type=int, required=True, help="Port of the Waveshare Relay")
+    parser.add_argument(
+        "--port", type=int, required=True, help="Port of the Waveshare Relay"
+    )
 
     args = parser.parse_args()
 
@@ -57,6 +72,7 @@ def main():
     port = args.port
 
     main_menu(ip_address, port)
+
 
 if __name__ == "__main__":
     main()
