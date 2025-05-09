@@ -80,7 +80,7 @@ async def test_async_turn_on(mock_hass):
             patch.object(mock_hass, "async_add_executor_job", new_callable=AsyncMock) as mock_executor_job, \
             patch("homeassistant.helpers.entity_registry.async_get") as mock_entity_registry, \
             patch.object(mock_hass.states, "get") as mock_states_get:
-        
+
         # Mock the entity registry and state to return the correct interval
         mock_entity_registry.return_value.async_get_entity_id.return_value = "number.test_relay_interval"
         mock_states_get.return_value.state = "5"  # Interval in seconds
@@ -160,12 +160,12 @@ async def test_check_relay_status():
     """Test check_relay_status function with all dependencies mocked."""
     switch = WaveshareRelaySwitch(MagicMock(), "192.168.1.100", 502, 0, "Test Relay")
 
-    with patch("custom_components.waveshare_relay.switch._read_relay_status", return_value=[0]) as mock_read_status, \
+    with patch("custom_components.waveshare_relay.switch._read_relay_status", return_value=[0]), \
             patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep, \
             patch.object(switch, "async_write_ha_state") as mock_write_ha_state, \
             patch("custom_components.waveshare_relay.switch._LOGGER.info") as mock_logger_info, \
             patch.object(switch.hass, "async_add_executor_job", new_callable=AsyncMock) as mock_executor_job:
-        
+
         # Mock the executor job to simulate relay status reading
         mock_executor_job.return_value = [0]
 

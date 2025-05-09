@@ -1,5 +1,4 @@
 import argparse
-import time
 import logging
 from custom_components.waveshare_relay.utils import (
     _read_relay_status,

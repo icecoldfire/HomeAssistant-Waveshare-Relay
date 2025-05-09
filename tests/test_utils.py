@@ -45,7 +45,7 @@ def test_send_modbus_message_success(mock_socket):
 
 def test_send_modbus_message_exception(mock_socket):
     """Test _send_modbus_message with an exception response."""
-    mock_socket_instance = setup_mock_response(
+    setup_mock_response(
         mock_socket, b"\x00\x01\x00\x00\x00\x03\x01\x83\x02"
     )
 
@@ -67,7 +67,7 @@ def test_send_modbus_message_socket_error(mock_socket):
 
 def test_send_modbus_command(mock_socket):
     """Test _send_modbus_command for a valid command."""
-    mock_socket_instance = setup_mock_response(
+    setup_mock_response(
         mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x03\x02\x00\x01"
     )
 
@@ -94,7 +94,7 @@ def test_send_modbus_command_control_relay(mock_socket):
 
 def test_read_relay_status(mock_socket):
     """Test _read_relay_status for valid relay statuses."""
-    mock_socket_instance = setup_mock_response(
+    setup_mock_response(
         mock_socket, b"\x00\x01\x00\x00\x00\x05\x01\x01\x01\x01"
     )
 
@@ -106,7 +106,7 @@ def test_read_relay_status(mock_socket):
 
 def test_read_relay_status_invalid_response_length(mock_socket):
     """Test _read_relay_status handles invalid response length."""
-    mock_socket_instance = setup_mock_response(
+    setup_mock_response(
         mock_socket, b"\x00\x01\x00\x00\x00\x05\x01\x01"
     )
 
@@ -118,7 +118,7 @@ def test_read_relay_status_invalid_response_length(mock_socket):
 
 def test_read_relay_status_no_response(mock_socket):
     """Test _read_relay_status handles no response."""
-    mock_socket_instance = setup_mock_response(mock_socket, None)
+    setup_mock_response(mock_socket, None)
 
     with patch("custom_components.waveshare_relay.utils.socket.socket", mock_socket):
         statuses = _read_relay_status("127.0.0.1", 502, 0, 8)
@@ -128,7 +128,7 @@ def test_read_relay_status_no_response(mock_socket):
 
 def test_read_device_address(mock_socket):
     """Test _read_device_address for a valid address."""
-    mock_socket_instance = setup_mock_response(
+    setup_mock_response(
         mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x03\x02\x01\x00"
     )
 
@@ -140,7 +140,7 @@ def test_read_device_address(mock_socket):
 
 def test_read_device_address_no_response(mock_socket):
     """Test _read_device_address handles no response."""
-    mock_socket_instance = setup_mock_response(mock_socket, None)
+    setup_mock_response(mock_socket, None)
 
     with patch("custom_components.waveshare_relay.utils.socket.socket", mock_socket):
         address = _read_device_address("127.0.0.1", 502)
@@ -150,7 +150,7 @@ def test_read_device_address_no_response(mock_socket):
 
 def test_read_software_version(mock_socket):
     """Test _read_software_version for a valid version."""
-    mock_socket_instance = setup_mock_response(
+    setup_mock_response(
         mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x03\x02\x01\x90"
     )
 
@@ -162,7 +162,7 @@ def test_read_software_version(mock_socket):
 
 def test_read_software_version_no_response(mock_socket):
     """Test _read_software_version handles no response."""
-    mock_socket_instance = setup_mock_response(mock_socket, None)
+    setup_mock_response(mock_socket, None)
 
     with patch("custom_components.waveshare_relay.utils.socket.socket", mock_socket):
         version = _read_software_version("127.0.0.1", 502)

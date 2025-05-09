@@ -2,7 +2,6 @@
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers.service import async_register_admin_service
 import socket
 import logging
 

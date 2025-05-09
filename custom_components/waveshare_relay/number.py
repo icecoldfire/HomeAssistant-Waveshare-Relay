@@ -48,7 +48,7 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
 
     @property
     def device_info(self):
-        device_address = _read_device_address(self._ip_address, self._port)
+        _read_device_address(self._ip_address, self._port)
         software_version = _read_software_version(self._ip_address, self._port)
 
         return {

@@ -1,4 +1,4 @@
-from pytest_socket import enable_socket, disable_socket, socket_allow_hosts
+from pytest_socket import enable_socket, socket_allow_hosts
 import pytest
 
 

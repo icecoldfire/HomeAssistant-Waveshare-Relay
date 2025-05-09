@@ -1,0 +1,9 @@
+line-length = 150
+
+[lint]
+select = ["E", "F", "W", "C"]
+ignore = []
+exclude = ["__pycache__", "venv"]
+
+[lint.per-file-ignores]
+"tests/test_*.py" = ["F401"]
