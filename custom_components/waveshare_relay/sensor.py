@@ -5,21 +5,23 @@ from homeassistant.const import UnitOfTime
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 from .const import DOMAIN
-from .utils import _read_device_address, _read_software_version, _send_modbus_command
+from .utils import _read_device_address, _read_software_version
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    ip_address = config_entry.data['ip_address']
-    port = config_entry.data['port']
-    device_name = config_entry.data['device_name']
-    relay_channels = config_entry.data['channels']
+    ip_address = config_entry.data["ip_address"]
+    port = config_entry.data["port"]
+    device_name = config_entry.data["device_name"]
+    relay_channels = config_entry.data["channels"]
 
     timers = [
         WaveshareRelayTimer(hass, ip_address, port, device_name, relay_channel)
         for relay_channel in range(relay_channels)
     ]
     async_add_entities(timers)
+
 
 class WaveshareRelayTimer(SensorEntity):
     _attr_icon = "mdi:timer-outline"
@@ -98,7 +100,11 @@ class WaveshareRelayTimer(SensorEntity):
                     try:
                         interval = int(float(interval_state.state))
                     except ValueError:
-                        _LOGGER.error("Invalid interval value for %s: %s", entity_id, interval_state.state)
+                        _LOGGER.error(
+                            "Invalid interval value for %s: %s",
+                            entity_id,
+                            interval_state.state,
+                        )
                         interval = 5  # Default to 5 seconds if conversion fails
                 else:
                     interval = 5  # Default to 5 seconds if not found
@@ -133,7 +139,9 @@ class WaveshareRelayTimer(SensorEntity):
                 self._state = remaining_time
                 self.async_write_ha_state()  # Update the sensor state
         except asyncio.CancelledError:
-            _LOGGER.info("Countdown task for relay channel %d cancelled", self._relay_channel)
+            _LOGGER.info(
+                "Countdown task for relay channel %d cancelled", self._relay_channel
+            )
         finally:
             if remaining_time <= 0:
                 self._state = 0

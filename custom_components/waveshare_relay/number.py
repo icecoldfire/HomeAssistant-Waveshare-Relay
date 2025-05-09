@@ -1,25 +1,26 @@
 import logging
 from homeassistant.components.number import NumberEntity
-from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.restore_state import RestoreEntity
 from .const import DOMAIN
-from .utils import _read_device_address, _read_software_version, _send_modbus_command
+from .utils import _read_device_address, _read_software_version
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    ip_address = config_entry.data['ip_address']
-    port = config_entry.data['port']
-    device_name = config_entry.data['device_name']
-    relay_channels = config_entry.data['channels']
 
-    # Create 8 number entities for configuring the on-interval of each relay
+async def async_setup_entry(hass, config_entry, async_add_entities):
+    ip_address = config_entry.data["ip_address"]
+    port = config_entry.data["port"]
+    device_name = config_entry.data["device_name"]
+    relay_channels = config_entry.data["channels"]
+
+    # Create number entities for configuring the on-interval of each relay
     intervals = [
         WaveshareRelayInterval(hass, ip_address, port, device_name, relay_channel)
         for relay_channel in range(relay_channels)
     ]
 
     async_add_entities(intervals)
+
 
 class WaveshareRelayInterval(RestoreEntity, NumberEntity):
     _attr_icon = "mdi:update"
@@ -32,7 +33,7 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
         self._device_name = device_name
         self._relay_channel = relay_channel
         self._attr_editable = True
-        self._attr_mode = 'slider'
+        self._attr_mode = "slider"
         self._attr_native_min_value = 0
         self._attr_native_max_value = 600
         self._attr_native_step = 1
@@ -69,7 +70,9 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
         if last_state and last_state.state:
             try:
                 self._attr_native_value = float(last_state.state)
-                _LOGGER.info("Restored %s to %s seconds", self.name, self._attr_native_value)
+                _LOGGER.info(
+                    "Restored %s to %s seconds", self.name, self._attr_native_value
+                )
             except ValueError:
                 _LOGGER.warning("Could not restore state for %s", self.name)
                 self._attr_native_value = 5
@@ -83,7 +86,11 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
     async def async_set_native_value(self, value):
         self._attr_native_value = value
         self.async_write_ha_state()
-        _LOGGER.info("Set interval for relay channel %d to %d seconds", self._relay_channel, value)
+        _LOGGER.info(
+            "Set interval for relay channel %d to %d seconds",
+            self._relay_channel,
+            value,
+        )
 
     @property
     def native_min_value(self):
