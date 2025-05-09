@@ -1,28 +1,24 @@
 import logging
 from typing import Any, Optional
-from homeassistant.components.number import NumberEntity, NumberMode, NumberDeviceClass
+
+from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.restore_state import RestoreEntity
+
 from .const import DOMAIN
 from .utils import _read_device_address, _read_software_version
-from homeassistant.helpers.device_registry import DeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass: Any, config_entry: Any, async_add_entities: Any
-) -> None:
+async def async_setup_entry(hass: Any, config_entry: Any, async_add_entities: Any) -> None:
     ip_address: str = config_entry.data["ip_address"]
     port: int = config_entry.data["port"]
     device_name: str = config_entry.data["device_name"]
     relay_channels: int = config_entry.data["channels"]
 
     # Create number entities for configuring the on-interval of each relay
-    intervals = [
-        WaveshareRelayInterval(hass, ip_address, port,
-                               device_name, relay_channel)
-        for relay_channel in range(relay_channels)
-    ]
+    intervals = [WaveshareRelayInterval(hass, ip_address, port, device_name, relay_channel) for relay_channel in range(relay_channels)]
 
     async_add_entities(intervals)
 
@@ -82,9 +78,7 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
         if last_state and last_state.state:
             try:
                 self._attr_native_value = float(last_state.state)
-                _LOGGER.info(
-                    "Restored %s to %s seconds", self.name, self._attr_native_value
-                )
+                _LOGGER.info("Restored %s to %s seconds", self.name, self._attr_native_value)
             except ValueError:
                 _LOGGER.warning("Could not restore state for %s", self.name)
                 self._attr_native_value = 5

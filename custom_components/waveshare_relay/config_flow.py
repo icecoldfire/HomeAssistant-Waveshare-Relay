@@ -1,9 +1,10 @@
+import logging
+import socket
+from typing import Any, Dict, Optional
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.exceptions import HomeAssistantError
-from typing import Any, Optional, Dict
-import logging
-import socket
 
 from .const import DOMAIN
 
@@ -15,9 +16,7 @@ DATA_SCHEMA = vol.Schema(
         vol.Required("ip_address"): vol.Coerce(str),
         vol.Required("port", default=502): vol.Coerce(int),
         vol.Required("device_name", default="Waveshare Relay"): vol.Coerce(str),
-        vol.Required("channels", default=8): vol.All(
-            vol.Coerce(int), vol.Range(min=1, max=32)
-        ),
+        vol.Required("channels", default=8): vol.All(vol.Coerce(int), vol.Range(min=1, max=32)),
     }
 )
 
@@ -45,9 +44,7 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                 try:
                     # Test the connection before creating the entry
-                    self._validate_connection(
-                        user_input["ip_address"], user_input["port"]
-                    )
+                    self._validate_connection(user_input["ip_address"], user_input["port"])
 
                     if not errors:
                         return self.async_create_entry(
@@ -65,9 +62,7 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     _LOGGER.error("Unexpected error: %s", e)
                     errors["base"] = "unknown"
 
-        return self.async_show_form(
-            step_id="user", data_schema=DATA_SCHEMA, errors=errors
-        )
+        return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
 
     async def async_step_reconfigure(self, user_input: Optional[Dict[str, Any]] = None) -> Any:
         """Handle reconfiguration of an existing entry."""
@@ -78,10 +73,7 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # Check for duplicate entries
             existing_entries = self._async_current_entries()
             for entry in existing_entries:
-                if (
-                    reconfigure_entry.unique_id != entry.unique_id
-                    and entry.data.get("ip_address") == user_input["ip_address"]
-                ):
+                if reconfigure_entry.unique_id != entry.unique_id and entry.data.get("ip_address") == user_input["ip_address"]:
                     errors["base"] = "already_configured"
                     break
 
@@ -91,9 +83,7 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     errors["channels"] = "invalid_channels"
 
                 try:
-                    self._validate_connection(
-                        user_input["ip_address"], user_input["port"]
-                    )
+                    self._validate_connection(user_input["ip_address"], user_input["port"])
 
                     if not errors:
                         return self.async_update_reload_and_abort(
@@ -119,22 +109,14 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         data_schema = vol.Schema(
             {
-                vol.Required(
-                    "ip_address", default=current_entry.data["ip_address"]
-                ): vol.Coerce(str),
+                vol.Required("ip_address", default=current_entry.data["ip_address"]): vol.Coerce(str),
                 vol.Required("port", default=current_entry.data["port"]): vol.Coerce(int),
-                vol.Required(
-                    "device_name", default=current_entry.data["device_name"]
-                ): vol.Coerce(str),
-                vol.Required("channels", default=current_entry.data["channels"]): vol.All(
-                    vol.Coerce(int), vol.Range(min=1, max=32)
-                ),
+                vol.Required("device_name", default=current_entry.data["device_name"]): vol.Coerce(str),
+                vol.Required("channels", default=current_entry.data["channels"]): vol.All(vol.Coerce(int), vol.Range(min=1, max=32)),
             }
         )
 
-        return self.async_show_form(
-            step_id="reconfigure", data_schema=data_schema, errors=errors
-        )
+        return self.async_show_form(step_id="reconfigure", data_schema=data_schema, errors=errors)
 
     def _validate_connection(self, ip_address: str, port: int) -> None:
         """Validate the IP address and port by attempting to connect to the Modbus device."""

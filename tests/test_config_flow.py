@@ -1,10 +1,12 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResultType
+
 from custom_components.waveshare_relay.config_flow import (
-    WaveshareRelayConfigFlow,
     CannotConnect,
+    WaveshareRelayConfigFlow,
 )
 from custom_components.waveshare_relay.const import DOMAIN
 
@@ -192,9 +194,7 @@ async def test_reconfigure_step_valid_input(setup_flow, mock_hass, mock_config_e
 
 
 @pytest.mark.asyncio
-async def test_reconfigure_step_duplicate_entry(
-    setup_flow, mock_hass, mock_config_entry
-):
+async def test_reconfigure_step_duplicate_entry(setup_flow, mock_hass, mock_config_entry):
     """Test reconfigure step with duplicate entry."""
     existing_entry = mock_config_entry(ip_address=IP_ADDRESS, unique_id="1")
     new_entry = mock_config_entry(ip_address=IP_ADDRESS, unique_id="2")
@@ -214,9 +214,7 @@ async def test_reconfigure_step_duplicate_entry(
 
 
 @pytest.mark.asyncio
-async def test_reconfigure_step_cannot_connect(
-    setup_flow, mock_hass, mock_socket, mock_config_entry
-):
+async def test_reconfigure_step_cannot_connect(setup_flow, mock_hass, mock_socket, mock_config_entry):
     """Test reconfigure step with connection failure."""
     mock_socket.side_effect = CannotConnect()
     existing_entry = mock_config_entry(ip_address=IP_ADDRESS)
@@ -235,9 +233,7 @@ async def test_reconfigure_step_cannot_connect(
 
 
 @pytest.mark.asyncio
-async def test_reconfigure_step_invalid_channels(
-    setup_flow, mock_hass, mock_config_entry
-):
+async def test_reconfigure_step_invalid_channels(setup_flow, mock_hass, mock_config_entry):
     """Test reconfigure step with invalid channels."""
     existing_entry = mock_config_entry(ip_address=IP_ADDRESS)
     mock_hass.config_entries.async_get_entry = MagicMock(return_value=existing_entry)
@@ -255,9 +251,7 @@ async def test_reconfigure_step_invalid_channels(
 
 
 @pytest.mark.asyncio
-async def test_reconfigure_step_unknown_error(
-    setup_flow, mock_hass, mock_socket, mock_config_entry
-):
+async def test_reconfigure_step_unknown_error(setup_flow, mock_hass, mock_socket, mock_config_entry):
     """Test reconfigure step with an unexpected error."""
     mock_socket.side_effect = Exception("Unexpected error")
     existing_entry = mock_config_entry(ip_address=IP_ADDRESS)
@@ -290,6 +284,7 @@ async def test_validate_connection_failure(setup_flow, mock_socket):
     mock_socket.side_effect = OSError()
     with pytest.raises(CannotConnect):
         setup_flow._validate_connection(IP_ADDRESS, PORT)
+
 
 @pytest.mark.asyncio
 async def test_reconfigure_step_entry_not_found(setup_flow, mock_hass):

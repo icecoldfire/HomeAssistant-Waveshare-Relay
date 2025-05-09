@@ -1,6 +1,7 @@
-import socket
 import logging
-from typing import Optional, List
+import socket
+from typing import List, Optional
+
 from .const import MODBUS_EXCEPTION_MESSAGES
 
 _LOGGER = logging.getLogger(__name__)

@@ -1,36 +1,32 @@
 import asyncio
 import logging
 from typing import Any, Dict, Optional
+
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.device_registry import DeviceInfo
+
 from .const import DOMAIN
 from .utils import (
     _read_device_address,
+    _read_relay_status,
     _read_software_version,
     _send_modbus_command,
-    _read_relay_status,
 )
-
-from homeassistant.helpers.device_registry import DeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
 
 CONF_PORT = "port"
 
 
-async def async_setup_entry(
-    hass: Any, config_entry: Any, async_add_entities: Any
-) -> None:
+async def async_setup_entry(hass: Any, config_entry: Any, async_add_entities: Any) -> None:
     ip_address: str = config_entry.data[CONF_IP_ADDRESS]
     port: int = config_entry.data[CONF_PORT]
     device_name: str = config_entry.data["device_name"]
     relay_channels: int = config_entry.data["channels"]
 
-    switches = [
-        WaveshareRelaySwitch(hass, ip_address, port, relay_channel, device_name)
-        for relay_channel in range(relay_channels)
-    ]
+    switches = [WaveshareRelaySwitch(hass, ip_address, port, relay_channel, device_name) for relay_channel in range(relay_channels)]
 
     async_add_entities(switches)
 
@@ -144,9 +140,7 @@ class WaveshareRelaySwitch(SwitchEntity):
             try:
                 await self._status_task
             except asyncio.CancelledError:
-                _LOGGER.info(
-                    "Status check task for channel %d cancelled", self._relay_channel
-                )
+                _LOGGER.info("Status check task for channel %d cancelled", self._relay_channel)
 
     async def check_relay_status(self) -> None:
         """Continuously check the relay status for a specific channel every 1 second."""
@@ -203,10 +197,6 @@ class WaveshareRelaySwitch(SwitchEntity):
                         e,
                     )
         except asyncio.CancelledError:
-            _LOGGER.info(
-                "Status check task for channel %d cancelled", self._relay_channel
-            )
+            _LOGGER.info("Status check task for channel %d cancelled", self._relay_channel)
         finally:
-            _LOGGER.info(
-                "Status check task for channel %d has ended", self._relay_channel
-            )
+            _LOGGER.info("Status check task for channel %d has ended", self._relay_channel)

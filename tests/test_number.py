@@ -1,8 +1,10 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 from homeassistant.helpers.restore_state import RestoreEntity
-from custom_components.waveshare_relay.number import WaveshareRelayInterval, async_setup_entry
+
 from custom_components.waveshare_relay.const import DOMAIN
+from custom_components.waveshare_relay.number import WaveshareRelayInterval, async_setup_entry
 
 
 @pytest.fixture
@@ -63,8 +65,9 @@ def test_waveshare_relay_interval_unique_id():
 def test_waveshare_relay_interval_device_info():
     """Test device_info property."""
     hass = MagicMock()
-    with patch("custom_components.waveshare_relay.number._read_device_address", return_value=1), patch(
-        "custom_components.waveshare_relay.number._read_software_version", return_value="1.0"
+    with (
+        patch("custom_components.waveshare_relay.number._read_device_address", return_value=1),
+        patch("custom_components.waveshare_relay.number._read_software_version", return_value="1.0"),
     ):
         interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
         device_info = interval.device_info

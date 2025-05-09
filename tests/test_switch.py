@@ -1,8 +1,10 @@
 import asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
-from custom_components.waveshare_relay.switch import WaveshareRelaySwitch, async_setup_entry
+
 from custom_components.waveshare_relay.const import DOMAIN
+from custom_components.waveshare_relay.switch import WaveshareRelaySwitch, async_setup_entry
 
 
 @pytest.fixture
@@ -14,12 +16,14 @@ def mock_hass():
 @pytest.fixture
 def mock_config_entry():
     """Fixture to create a mock config entry."""
-    return MagicMock(data={
-        "ip_address": "192.168.1.100",
-        "port": 502,
-        "device_name": "Test Relay",
-        "channels": 8,
-    })
+    return MagicMock(
+        data={
+            "ip_address": "192.168.1.100",
+            "port": 502,
+            "device_name": "Test Relay",
+            "channels": 8,
+        }
+    )
 
 
 @pytest.mark.asyncio
@@ -58,8 +62,10 @@ def test_waveshare_relay_switch_initialization():
 def test_waveshare_relay_switch_device_info():
     """Test device_info property."""
     hass = MagicMock()
-    with patch("custom_components.waveshare_relay.switch._read_device_address", return_value=1), \
-            patch("custom_components.waveshare_relay.switch._read_software_version", return_value="1.0"):
+    with (
+        patch("custom_components.waveshare_relay.switch._read_device_address", return_value=1),
+        patch("custom_components.waveshare_relay.switch._read_software_version", return_value="1.0"),
+    ):
         switch = WaveshareRelaySwitch(hass, "192.168.1.100", 502, 0, "Test Relay")
         device_info = switch.device_info
 
@@ -75,12 +81,13 @@ async def test_async_turn_on(mock_hass):
     """Test async_turn_on method."""
     switch = WaveshareRelaySwitch(mock_hass, "192.168.1.100", 502, 0, "Test Relay")
 
-    with patch("custom_components.waveshare_relay.switch._send_modbus_command") as mock_send_command, \
-            patch.object(switch, "async_write_ha_state") as mock_write_ha_state, \
-            patch.object(mock_hass, "async_add_executor_job", new_callable=AsyncMock) as mock_executor_job, \
-            patch("homeassistant.helpers.entity_registry.async_get") as mock_entity_registry, \
-            patch.object(mock_hass.states, "get") as mock_states_get:
-
+    with (
+        patch("custom_components.waveshare_relay.switch._send_modbus_command") as mock_send_command,
+        patch.object(switch, "async_write_ha_state") as mock_write_ha_state,
+        patch.object(mock_hass, "async_add_executor_job", new_callable=AsyncMock) as mock_executor_job,
+        patch("homeassistant.helpers.entity_registry.async_get") as mock_entity_registry,
+        patch.object(mock_hass.states, "get") as mock_states_get,
+    ):
         # Mock the entity registry and state to return the correct interval
         mock_entity_registry.return_value.async_get_entity_id.return_value = "number.test_relay_interval"
         mock_states_get.return_value.state = "5"  # Interval in seconds
@@ -91,7 +98,11 @@ async def test_async_turn_on(mock_hass):
         await switch.async_turn_on()
 
         mock_send_command.assert_called_once_with(
-            "192.168.1.100", 502, 0x05, 0, 50  # Interval = 5 seconds * 10
+            "192.168.1.100",
+            502,
+            0x05,
+            0,
+            50,  # Interval = 5 seconds * 10
         )
         assert switch._is_on is True
         mock_write_ha_state.assert_called()
@@ -110,17 +121,17 @@ async def test_async_turn_off(mock_hass):
     """Test async_turn_off method."""
     switch = WaveshareRelaySwitch(mock_hass, "192.168.1.100", 502, 0, "Test Relay")
 
-    with patch("custom_components.waveshare_relay.switch._send_modbus_command") as mock_send_command, \
-            patch.object(switch, "async_write_ha_state") as mock_write_ha_state, \
-            patch.object(mock_hass, "async_add_executor_job", new_callable=AsyncMock) as mock_executor_job:
+    with (
+        patch("custom_components.waveshare_relay.switch._send_modbus_command") as mock_send_command,
+        patch.object(switch, "async_write_ha_state") as mock_write_ha_state,
+        patch.object(mock_hass, "async_add_executor_job", new_callable=AsyncMock) as mock_executor_job,
+    ):
         # Simulate the executor job calling the mocked _send_modbus_command
         mock_executor_job.side_effect = lambda func, *args, **kwargs: func(*args, **kwargs)
 
         await switch.async_turn_off()
 
-        mock_send_command.assert_called_once_with(
-            "192.168.1.100", 502, 0x05, 0, 0
-        )
+        mock_send_command.assert_called_once_with("192.168.1.100", 502, 0x05, 0, 0)
         assert switch._is_on is False
         mock_write_ha_state.assert_called()
 
@@ -131,17 +142,19 @@ async def test_async_turn_off(mock_hass):
                 await switch._status_task
             except asyncio.CancelledError:
                 pass
+
+
 @pytest.mark.asyncio
 async def test_async_added_to_hass(mock_hass):
     """Test async_added_to_hass method."""
     switch = WaveshareRelaySwitch(mock_hass, "192.168.1.100", 502, 0, "Test Relay")
 
-    with patch.object(switch, "hass") as mock_hass_instance, \
-            patch.object(mock_hass_instance.bus, "async_listen") as mock_async_listen:
+    with patch.object(switch, "hass") as mock_hass_instance, patch.object(mock_hass_instance.bus, "async_listen") as mock_async_listen:
         await switch.async_added_to_hass()
 
         # Verify that the event listener is registered
         mock_async_listen.assert_called_once_with("state_changed", switch._handle_state_change)
+
 
 @pytest.mark.asyncio
 async def test_handle_state_change(mock_hass):
@@ -155,17 +168,19 @@ async def test_handle_state_change(mock_hass):
         # Verify that the debug log is called with the correct event
         mock_logger_debug.assert_called_once_with("State changed: %s", event)
 
+
 @pytest.mark.asyncio
 async def test_check_relay_status():
     """Test check_relay_status function with all dependencies mocked."""
     switch = WaveshareRelaySwitch(MagicMock(), "192.168.1.100", 502, 0, "Test Relay")
 
-    with patch("custom_components.waveshare_relay.switch._read_relay_status", return_value=[0]), \
-            patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep, \
-            patch.object(switch, "async_write_ha_state") as mock_write_ha_state, \
-            patch("custom_components.waveshare_relay.switch._LOGGER.info") as mock_logger_info, \
-            patch.object(switch.hass, "async_add_executor_job", new_callable=AsyncMock) as mock_executor_job:
-
+    with (
+        patch("custom_components.waveshare_relay.switch._read_relay_status", return_value=[0]),
+        patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
+        patch.object(switch, "async_write_ha_state") as mock_write_ha_state,
+        patch("custom_components.waveshare_relay.switch._LOGGER.info") as mock_logger_info,
+        patch.object(switch.hass, "async_add_executor_job", new_callable=AsyncMock) as mock_executor_job,
+    ):
         # Mock the executor job to simulate relay status reading
         mock_executor_job.return_value = [0]
 
@@ -182,22 +197,22 @@ async def test_check_relay_status():
         mock_write_ha_state.assert_called()
 
         # Verify that the logger was called to indicate the task ended
-        mock_logger_info.assert_called_with(
-            "Status check task for channel %d has ended", switch._relay_channel
-        )
+        mock_logger_info.assert_called_with("Status check task for channel %d has ended", switch._relay_channel)
+
 
 @pytest.mark.asyncio
 async def test_async_turn_on_invalid_interval(mock_hass):
     """Test async_turn_on method with invalid interval."""
     switch = WaveshareRelaySwitch(mock_hass, "192.168.1.100", 502, 0, "Test Relay")
 
-    with patch("custom_components.waveshare_relay.switch._send_modbus_command") as mock_send_command, \
-            patch.object(switch, "async_write_ha_state") as mock_write_ha_state, \
-            patch("homeassistant.helpers.entity_registry.async_get") as mock_entity_registry, \
-            patch.object(mock_hass.states, "get") as mock_states_get, \
-            patch.object(mock_hass, "async_add_executor_job", new_callable=AsyncMock) as mock_executor_job, \
-            patch("custom_components.waveshare_relay.switch._LOGGER.error") as mock_logger_error:
-
+    with (
+        patch("custom_components.waveshare_relay.switch._send_modbus_command") as mock_send_command,
+        patch.object(switch, "async_write_ha_state") as mock_write_ha_state,
+        patch("homeassistant.helpers.entity_registry.async_get") as mock_entity_registry,
+        patch.object(mock_hass.states, "get") as mock_states_get,
+        patch.object(mock_hass, "async_add_executor_job", new_callable=AsyncMock) as mock_executor_job,
+        patch("custom_components.waveshare_relay.switch._LOGGER.error") as mock_logger_error,
+    ):
         # Mock the entity registry and state to return an invalid interval
         mock_entity_registry.return_value.async_get_entity_id.return_value = "number.test_relay_interval"
         mock_states_get.return_value.state = "invalid"
@@ -210,7 +225,11 @@ async def test_async_turn_on_invalid_interval(mock_hass):
 
         # Verify that the default interval was used
         mock_send_command.assert_called_once_with(
-            "192.168.1.100", 502, 0x05, 0, 50  # Default interval = 5 seconds * 10
+            "192.168.1.100",
+            502,
+            0x05,
+            0,
+            50,  # Default interval = 5 seconds * 10
         )
         mock_logger_error.assert_called_with(
             "Invalid interval value for %s: %s",
@@ -227,4 +246,3 @@ async def test_async_turn_on_invalid_interval(mock_hass):
                 await switch._status_task
             except asyncio.CancelledError:
                 pass
-
