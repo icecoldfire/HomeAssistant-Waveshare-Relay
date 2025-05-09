@@ -1,5 +1,6 @@
 # Waveshare Relay Home Assistant Integration
 
+[![Build Status](https://github.com/icecoldfire/HomeAssistant-Waveshare-Relay/actions/workflows/main.yml/badge.svg)](https://github.com/icecoldfire/HomeAssistant-Waveshare-Relay/actions)
 [![codecov](https://codecov.io/gh/icecoldfire/HomeAssistant-Waveshare-Relay/graph/badge.svg?token=3GI4QXYCSS)](https://codecov.io/gh/icecoldfire/HomeAssistant-Waveshare-Relay)
 
 
