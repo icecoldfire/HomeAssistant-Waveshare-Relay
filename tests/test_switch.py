@@ -1,4 +1,5 @@
 import asyncio
+from typing import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -8,13 +9,13 @@ from custom_components.waveshare_relay.switch import WaveshareRelaySwitch, async
 
 
 @pytest.fixture
-def mock_hass():
+def mock_hass() -> MagicMock:
     """Fixture to mock Home Assistant instance."""
     return MagicMock()
 
 
 @pytest.fixture
-def mock_config_entry():
+def mock_config_entry() -> MagicMock:
     """Fixture to create a mock config entry."""
     return MagicMock(
         data={
@@ -27,7 +28,7 @@ def mock_config_entry():
 
 
 @pytest.mark.asyncio
-async def test_async_setup_entry(mock_hass, mock_config_entry):
+async def test_async_setup_entry(mock_hass: MagicMock, mock_config_entry: MagicMock) -> None:
     """Test async_setup_entry function."""
     async_add_entities = MagicMock()
 
@@ -37,7 +38,7 @@ async def test_async_setup_entry(mock_hass, mock_config_entry):
     assert len(async_add_entities.call_args[0][0]) == mock_config_entry.data["channels"]
 
 
-def test_waveshare_relay_switch_initialization():
+def test_waveshare_relay_switch_initialization() -> None:
     """Test initialization of WaveshareRelaySwitch."""
     hass = MagicMock()
     switch = WaveshareRelaySwitch(hass, "192.168.1.100", 502, 0, "Test Relay")
@@ -59,7 +60,7 @@ def test_waveshare_relay_switch_initialization():
     assert switch.unique_id == f"{DOMAIN}_192.168.1.100_0_switch"
 
 
-def test_waveshare_relay_switch_device_info():
+def test_waveshare_relay_switch_device_info() -> None:
     """Test device_info property."""
     hass = MagicMock()
     with (
@@ -77,7 +78,7 @@ def test_waveshare_relay_switch_device_info():
 
 
 @pytest.mark.asyncio
-async def test_async_turn_on(mock_hass):
+async def test_async_turn_on(mock_hass: MagicMock) -> None:
     """Test async_turn_on method."""
     switch = WaveshareRelaySwitch(mock_hass, "192.168.1.100", 502, 0, "Test Relay")
 
@@ -117,7 +118,7 @@ async def test_async_turn_on(mock_hass):
 
 
 @pytest.mark.asyncio
-async def test_async_turn_off(mock_hass):
+async def test_async_turn_off(mock_hass: MagicMock) -> None:
     """Test async_turn_off method."""
     switch = WaveshareRelaySwitch(mock_hass, "192.168.1.100", 502, 0, "Test Relay")
 
@@ -145,7 +146,7 @@ async def test_async_turn_off(mock_hass):
 
 
 @pytest.mark.asyncio
-async def test_async_added_to_hass(mock_hass):
+async def test_async_added_to_hass(mock_hass: MagicMock) -> None:
     """Test async_added_to_hass method."""
     switch = WaveshareRelaySwitch(mock_hass, "192.168.1.100", 502, 0, "Test Relay")
 
@@ -157,7 +158,7 @@ async def test_async_added_to_hass(mock_hass):
 
 
 @pytest.mark.asyncio
-async def test_handle_state_change(mock_hass):
+async def test_handle_state_change(mock_hass: MagicMock) -> None:
     """Test _handle_state_change method."""
     switch = WaveshareRelaySwitch(mock_hass, "192.168.1.100", 502, 0, "Test Relay")
 
@@ -170,7 +171,7 @@ async def test_handle_state_change(mock_hass):
 
 
 @pytest.mark.asyncio
-async def test_check_relay_status():
+async def test_check_relay_status() -> None:
     """Test check_relay_status function with all dependencies mocked."""
     switch = WaveshareRelaySwitch(MagicMock(), "192.168.1.100", 502, 0, "Test Relay")
 
@@ -201,7 +202,7 @@ async def test_check_relay_status():
 
 
 @pytest.mark.asyncio
-async def test_async_turn_on_invalid_interval(mock_hass):
+async def test_async_turn_on_invalid_interval(mock_hass: MagicMock) -> None:
     """Test async_turn_on method with invalid interval."""
     switch = WaveshareRelaySwitch(mock_hass, "192.168.1.100", 502, 0, "Test Relay")
 

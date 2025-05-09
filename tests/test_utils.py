@@ -1,4 +1,5 @@
-from unittest.mock import patch
+from typing import Generator, Optional, cast
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -14,7 +15,7 @@ from custom_components.waveshare_relay.utils import (
 
 
 @pytest.fixture
-def mock_socket():
+def mock_socket() -> Generator[MagicMock, None, None]:
     """Fixture to mock socket connection."""
     with patch("socket.socket") as mock:
         yield mock
@@ -23,9 +24,9 @@ def mock_socket():
 # Helper Functions
 
 
-def setup_mock_response(mock_socket, response):
+def setup_mock_response(mock_socket: MagicMock, response: Optional[bytes]) -> MagicMock:
     """Helper to set up mock socket response."""
-    mock_socket_instance = mock_socket.return_value.__enter__.return_value
+    mock_socket_instance = cast(MagicMock, mock_socket.return_value.__enter__.return_value)
     mock_socket_instance.recv.return_value = response
     return mock_socket_instance
 
@@ -33,7 +34,7 @@ def setup_mock_response(mock_socket, response):
 # Test Cases
 
 
-def test_send_modbus_message_success(mock_socket):
+def test_send_modbus_message_success(mock_socket: MagicMock) -> None:
     """Test _send_modbus_message with a successful response."""
     mock_socket_instance = setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x03\x02\x00\x01")
 
@@ -45,7 +46,7 @@ def test_send_modbus_message_success(mock_socket):
     mock_socket_instance.sendall.assert_called()
 
 
-def test_send_modbus_message_exception(mock_socket):
+def test_send_modbus_message_exception(mock_socket: MagicMock) -> None:
     """Test _send_modbus_message with an exception response."""
     setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x03\x01\x83\x02")
 
@@ -55,7 +56,7 @@ def test_send_modbus_message_exception(mock_socket):
     assert response is None
 
 
-def test_send_modbus_message_socket_error(mock_socket):
+def test_send_modbus_message_socket_error(mock_socket: MagicMock) -> None:
     """Test _send_modbus_message handles socket errors."""
     mock_socket.return_value.__enter__.side_effect = Exception("Socket error")
 
@@ -65,7 +66,7 @@ def test_send_modbus_message_socket_error(mock_socket):
     assert response is None
 
 
-def test_send_modbus_command(mock_socket):
+def test_send_modbus_command(mock_socket: MagicMock) -> None:
     """Test _send_modbus_command for a valid command."""
     setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x03\x02\x00\x01")
 
@@ -75,7 +76,7 @@ def test_send_modbus_command(mock_socket):
     assert response == b"\x00\x01\x00\x00\x00\x06\x01\x03\x02\x00\x01"
 
 
-def test_send_modbus_command_control_relay(mock_socket):
+def test_send_modbus_command_control_relay(mock_socket: MagicMock) -> None:
     """Test _send_modbus_command for controlling a relay."""
     mock_socket_instance = setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x05\x00\x00")
 
@@ -87,7 +88,7 @@ def test_send_modbus_command_control_relay(mock_socket):
     mock_socket_instance.sendall.assert_called()
 
 
-def test_read_relay_status(mock_socket):
+def test_read_relay_status(mock_socket: MagicMock) -> None:
     """Test _read_relay_status for valid relay statuses."""
     setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x05\x01\x01\x01\x01")
 
@@ -97,7 +98,7 @@ def test_read_relay_status(mock_socket):
     assert statuses == [1, 0, 0, 0, 0, 0, 0, 0]
 
 
-def test_read_relay_status_invalid_response_length(mock_socket):
+def test_read_relay_status_invalid_response_length(mock_socket: MagicMock) -> None:
     """Test _read_relay_status handles invalid response length."""
     setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x05\x01\x01")
 
@@ -107,7 +108,7 @@ def test_read_relay_status_invalid_response_length(mock_socket):
     assert statuses is None
 
 
-def test_read_relay_status_no_response(mock_socket):
+def test_read_relay_status_no_response(mock_socket: MagicMock) -> None:
     """Test _read_relay_status handles no response."""
     setup_mock_response(mock_socket, None)
 
@@ -117,7 +118,7 @@ def test_read_relay_status_no_response(mock_socket):
     assert statuses is None
 
 
-def test_read_device_address(mock_socket):
+def test_read_device_address(mock_socket: MagicMock) -> None:
     """Test _read_device_address for a valid address."""
     setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x03\x02\x01\x00")
 
@@ -127,7 +128,7 @@ def test_read_device_address(mock_socket):
     assert address == 1
 
 
-def test_read_device_address_no_response(mock_socket):
+def test_read_device_address_no_response(mock_socket: MagicMock) -> None:
     """Test _read_device_address handles no response."""
     setup_mock_response(mock_socket, None)
 
@@ -137,7 +138,7 @@ def test_read_device_address_no_response(mock_socket):
     assert address is None
 
 
-def test_read_software_version(mock_socket):
+def test_read_software_version(mock_socket: MagicMock) -> None:
     """Test _read_software_version for a valid version."""
     setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x03\x02\x01\x90")
 
@@ -147,7 +148,7 @@ def test_read_software_version(mock_socket):
     assert version == "V4.00"
 
 
-def test_read_software_version_no_response(mock_socket):
+def test_read_software_version_no_response(mock_socket: MagicMock) -> None:
     """Test _read_software_version handles no response."""
     setup_mock_response(mock_socket, None)
 
