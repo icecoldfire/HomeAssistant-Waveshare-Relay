@@ -187,7 +187,8 @@ async def test_reconfigure_step_valid_input(setup_flow, mock_hass, mock_config_e
     }
 
     result = await setup_flow.async_step_reconfigure(user_input=user_input)
-    assert_form_result(result)
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "reconfigured"
 
 
 @pytest.mark.asyncio
@@ -289,3 +290,14 @@ async def test_validate_connection_failure(setup_flow, mock_socket):
     mock_socket.side_effect = OSError()
     with pytest.raises(CannotConnect):
         setup_flow._validate_connection(IP_ADDRESS, PORT)
+
+@pytest.mark.asyncio
+async def test_reconfigure_step_entry_not_found(setup_flow, mock_hass):
+    """Test reconfigure step when current_entry is None."""
+    mock_hass.config_entries.async_get_entry = MagicMock(return_value=None)
+
+    setup_flow.context = {"source": "reconfigure", "entry_id": "test_entry_id"}
+
+    result = await setup_flow.async_step_reconfigure(user_input=None)
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "entry_not_found"

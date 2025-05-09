@@ -45,7 +45,7 @@ def test_waveshare_relay_timer_initialization():
     assert timer._port == 502
     assert timer._device_name == "Test Relay"
     assert timer._relay_channel == 0
-    assert timer._state == 0
+    assert timer._attr_native_value == 0
     assert timer.unique_id == f"{DOMAIN}_192.168.1.100_0_timer"
 
 
@@ -78,7 +78,7 @@ async def test_switch_state_changed_on(mock_hass):
         event = MagicMock(data={"new_state": MagicMock(state="on")})
         await timer._switch_state_changed(event)
 
-        assert timer._state == 10
+        assert timer._attr_native_value == 10
         mock_write_ha_state.assert_called()
 
     if timer._timer_task:
@@ -100,7 +100,7 @@ async def test_switch_state_changed_off(mock_hass):
         event = MagicMock(data={"new_state": MagicMock(state="off")})
         await timer._switch_state_changed(event)
 
-        assert timer._state == 0
+        assert timer._attr_native_value == 0
         mock_write_ha_state.assert_called()
 
 
@@ -115,7 +115,7 @@ async def test_countdown_timer(mock_hass):
             patch.object(timer, "async_write_ha_state") as mock_write_ha_state:
         await timer._countdown_timer(5)
 
-        assert timer._state == 0
+        assert timer._attr_native_value == 0
         mock_write_ha_state.assert_called()
 
 
@@ -129,7 +129,7 @@ async def test_switch_state_changed_invalid_state(mock_hass):
     with patch.object(timer, "async_write_ha_state") as mock_write_ha_state:
         await timer._switch_state_changed(event)
 
-        assert timer._state == 0
+        assert timer._attr_native_value == 0
         mock_write_ha_state.assert_not_called()
 
 

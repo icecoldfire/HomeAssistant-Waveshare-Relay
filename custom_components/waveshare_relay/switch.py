@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import Any, Dict, Optional
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.helpers import entity_registry as er
@@ -11,16 +12,20 @@ from .utils import (
     _read_relay_status,
 )
 
+from homeassistant.helpers.device_registry import DeviceInfo
+
 _LOGGER = logging.getLogger(__name__)
 
 CONF_PORT = "port"
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    ip_address = config_entry.data[CONF_IP_ADDRESS]
-    port = config_entry.data[CONF_PORT]
-    device_name = config_entry.data["device_name"]
-    relay_channels = config_entry.data["channels"]
+async def async_setup_entry(
+    hass: Any, config_entry: Any, async_add_entities: Any
+) -> None:
+    ip_address: str = config_entry.data[CONF_IP_ADDRESS]
+    port: int = config_entry.data[CONF_PORT]
+    device_name: str = config_entry.data["device_name"]
+    relay_channels: int = config_entry.data["channels"]
 
     switches = [
         WaveshareRelaySwitch(hass, ip_address, port, relay_channel, device_name)
@@ -31,55 +36,62 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 
 class WaveshareRelaySwitch(SwitchEntity):
-    has_entity_name = True
+    has_entity_name: bool = True
 
-    def __init__(self, hass, ip_address, port, relay_channel, device_name):
-        """Initialize the sensor."""
-        self.hass = hass
-        self._is_on = False
-        self._ip_address = ip_address
-        self._port = port
-        self._relay_channel = relay_channel
-        self._status_task = None
-        self._device_name = device_name
+    def __init__(
+        self,
+        hass: Any,
+        ip_address: str,
+        port: int,
+        relay_channel: int,
+        device_name: str,
+    ) -> None:
+        """Initialize the switch."""
+        self.hass: Any = hass
+        self._is_on: bool = False
+        self._ip_address: str = ip_address
+        self._port: int = port
+        self._relay_channel: int = relay_channel
+        self._status_task: Optional[asyncio.Task[None]] = None
+        self._device_name: str = device_name
 
-    async def async_added_to_hass(self):
+    async def async_added_to_hass(self) -> None:
         """Subscribe to events when the entity is added to Home Assistant."""
         await super().async_added_to_hass()
         self.hass.bus.async_listen("state_changed", self._handle_state_change)
 
-    async def _handle_state_change(self, event):
+    async def _handle_state_change(self, event: Dict[str, Any]) -> None:
         """Handle state change events."""
         _LOGGER.debug("State changed: %s", event)
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return a unique ID for this sensor."""
         return f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_switch"
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         _read_device_address(self._ip_address, self._port)
         software_version = _read_software_version(self._ip_address, self._port)
 
-        return {
-            "identifiers": {(DOMAIN, self._ip_address)},
-            "name": self._device_name,  # Use the custom device name
-            "model": "Modbus POE ETH Relay",
-            "manufacturer": "Waveshare",
-            "sw_version": software_version or "unknown",
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._ip_address)},
+            name=self._device_name,  # Use the custom device name
+            model="Modbus POE ETH Relay",
+            manufacturer="Waveshare",
+            sw_version=software_version or "unknown",
+        )
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of the sensor."""
         return f"{self._relay_channel + 1} Switch"
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         return self._is_on
 
-    async def async_turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs: Any) -> None:
         unique_id = f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_interval"
         entity_registry = er.async_get(self.hass)
         entity_id = entity_registry.async_get_entity_id("number", DOMAIN, unique_id)
@@ -116,7 +128,7 @@ class WaveshareRelaySwitch(SwitchEntity):
         if self._status_task is None or self._status_task.done():
             self._status_task = asyncio.create_task(self.check_relay_status())
 
-    async def async_turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs: Any) -> None:
         await self.hass.async_add_executor_job(
             _send_modbus_command,
             self._ip_address,
@@ -136,7 +148,7 @@ class WaveshareRelaySwitch(SwitchEntity):
                     "Status check task for channel %d cancelled", self._relay_channel
                 )
 
-    async def check_relay_status(self):
+    async def check_relay_status(self) -> None:
         """Continuously check the relay status for a specific channel every 1 second."""
         _LOGGER.debug(
             "Starting status check task for channel %d, the switch is in stage: %s",

@@ -1,5 +1,6 @@
 import argparse
 import logging
+from typing import Optional
 from custom_components.waveshare_relay.utils import (
     _read_relay_status,
     _send_modbus_command,
@@ -11,7 +12,7 @@ logging.basicConfig(
 )
 
 
-def main_menu(ip_address, port):
+def main_menu(ip_address: str, port: int) -> None:
     while True:
         print("\nMain Menu:")
         print("1. Read channel status")
@@ -25,7 +26,7 @@ def main_menu(ip_address, port):
             start_channel = channel - 1
             num_channels = 1
 
-            relay_status = _read_relay_status(
+            relay_status: Optional[list[int]] = _read_relay_status(
                 ip_address, port, start_channel, num_channels
             )
             if relay_status is not None:
@@ -40,7 +41,7 @@ def main_menu(ip_address, port):
             relay_address = channel - 1
             interval_deciseconds = interval * 10  # Convert seconds to deciseconds
 
-            response = _send_modbus_command(
+            response: Optional[bytes] = _send_modbus_command(
                 ip_address, port, 0x05, relay_address, interval_deciseconds
             )
             if response is not None:
@@ -58,7 +59,7 @@ def main_menu(ip_address, port):
             print("Invalid choice. Please try again.")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="CLI for Waveshare Relay Control")
     parser.add_argument("--ip", required=True, help="IP address of the Waveshare Relay")
     parser.add_argument(
@@ -67,8 +68,8 @@ def main():
 
     args = parser.parse_args()
 
-    ip_address = args.ip
-    port = args.port
+    ip_address: str = args.ip
+    port: int = args.port
 
     main_menu(ip_address, port)
 
