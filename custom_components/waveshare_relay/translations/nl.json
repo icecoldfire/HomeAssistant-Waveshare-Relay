@@ -15,6 +15,10 @@
     "error": {
       "cannot_connect": "Kan geen verbinding maken met het apparaat.",
       "unknown": "Er is een onbekende fout opgetreden."
+    },
+    "abort": {
+      "entry_not_found": "De configuratie-invoer is niet gevonden.",
+      "reconfigured": "De configuratie is bijgewerkt."
     }
   }
 }

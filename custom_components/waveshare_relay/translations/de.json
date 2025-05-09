@@ -15,6 +15,10 @@
     "error": {
       "cannot_connect": "Verbindung zum Gerät fehlgeschlagen.",
       "unknown": "Ein unbekannter Fehler ist aufgetreten."
+    },
+    "abort": {
+      "entry_not_found": "Der Konfigurationseintrag wurde nicht gefunden.",
+      "reconfigured": "Die Konfiguration wurde aktualisiert."
     }
   }
 }

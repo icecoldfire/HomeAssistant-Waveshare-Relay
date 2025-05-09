@@ -1,12 +1,13 @@
-# utils.py
-import socket
 import logging
+import socket
+from typing import List, Optional
+
 from .const import MODBUS_EXCEPTION_MESSAGES
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def _send_modbus_message(ip_address, port, message, function_code):
+def _send_modbus_message(ip_address: str, port: int, message: List[int], function_code: int) -> Optional[bytes]:
     """Send a Modbus TCP message and return the response."""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -44,7 +45,7 @@ def _send_modbus_message(ip_address, port, message, function_code):
         return None
 
 
-def _send_modbus_command(ip_address, port, function_code, relay_address, interval=0):
+def _send_modbus_command(ip_address: str, port: int, function_code: int, relay_address: int, interval: int = 0) -> Optional[bytes]:
     """Send a Modbus TCP command and return the response."""
     transaction_id = 0x0001
     protocol_id = 0x0000
@@ -87,7 +88,7 @@ def _send_modbus_command(ip_address, port, function_code, relay_address, interva
     return _send_modbus_message(ip_address, port, message, function_code)
 
 
-def _read_relay_status(ip_address, port, start_channel, num_channels):
+def _read_relay_status(ip_address: str, port: int, start_channel: int, num_channels: int) -> Optional[List[int]]:
     """Send a Modbus TCP command to read the relay status for specific channels."""
     _LOGGER.debug(
         "Starting _read_relay_status with ip_address=%s, port=%d, start_channel=%d, num_channels=%d",
@@ -151,7 +152,7 @@ def _read_relay_status(ip_address, port, start_channel, num_channels):
     return relay_status
 
 
-def _read_device_address(ip_address, port):
+def _read_device_address(ip_address: str, port: int) -> Optional[int]:
     """Read the device address from the relay board."""
     response = _send_modbus_command(ip_address, port, 0x03, 0x4000)
     if response:
@@ -159,7 +160,7 @@ def _read_device_address(ip_address, port):
     return None
 
 
-def _read_software_version(ip_address, port):
+def _read_software_version(ip_address: str, port: int) -> Optional[str]:
     """Read the software version from the relay board."""
     response = _send_modbus_command(ip_address, port, 0x03, 0x8000)
     if response:

@@ -1,18 +1,21 @@
-import pytest
+from typing import Generator
 from unittest.mock import MagicMock, patch
+
+import pytest
 from homeassistant.helpers.restore_state import RestoreEntity
-from custom_components.waveshare_relay.number import WaveshareRelayInterval, async_setup_entry
+
 from custom_components.waveshare_relay.const import DOMAIN
+from custom_components.waveshare_relay.number import WaveshareRelayInterval, async_setup_entry
 
 
 @pytest.fixture
-def mock_hass():
+def mock_hass() -> MagicMock:
     """Fixture to mock Home Assistant instance."""
     return MagicMock()
 
 
 @pytest.fixture
-def mock_config_entry():
+def mock_config_entry() -> MagicMock:
     """Fixture to create a mock config entry."""
     mock_entry = MagicMock()
     mock_entry.data = {
@@ -25,7 +28,7 @@ def mock_config_entry():
 
 
 @pytest.mark.asyncio
-async def test_async_setup_entry(mock_hass, mock_config_entry):
+async def test_async_setup_entry(mock_hass: MagicMock, mock_config_entry: MagicMock) -> None:
     """Test async_setup_entry function."""
     async_add_entities = MagicMock()
 
@@ -37,7 +40,7 @@ async def test_async_setup_entry(mock_hass, mock_config_entry):
     assert len(async_add_entities.call_args[0][0]) == mock_config_entry.data["channels"]
 
 
-def test_waveshare_relay_interval_initialization():
+def test_waveshare_relay_interval_initialization() -> None:
     """Test initialization of WaveshareRelayInterval."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -52,7 +55,7 @@ def test_waveshare_relay_interval_initialization():
     assert interval._attr_native_unit_of_measurement == "s"
 
 
-def test_waveshare_relay_interval_unique_id():
+def test_waveshare_relay_interval_unique_id() -> None:
     """Test unique_id property."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -60,11 +63,12 @@ def test_waveshare_relay_interval_unique_id():
     assert interval.unique_id == f"{DOMAIN}_192.168.1.100_0_interval"
 
 
-def test_waveshare_relay_interval_device_info():
+def test_waveshare_relay_interval_device_info() -> None:
     """Test device_info property."""
     hass = MagicMock()
-    with patch("custom_components.waveshare_relay.number._read_device_address", return_value=1), patch(
-        "custom_components.waveshare_relay.number._read_software_version", return_value="1.0"
+    with (
+        patch("custom_components.waveshare_relay.number._read_device_address", return_value=1),
+        patch("custom_components.waveshare_relay.number._read_software_version", return_value="1.0"),
     ):
         interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
         device_info = interval.device_info
@@ -77,7 +81,7 @@ def test_waveshare_relay_interval_device_info():
 
 
 @pytest.mark.asyncio
-async def test_waveshare_relay_interval_restore_state():
+async def test_waveshare_relay_interval_restore_state() -> None:
     """Test restoring state on Home Assistant start."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -88,7 +92,7 @@ async def test_waveshare_relay_interval_restore_state():
 
 
 @pytest.mark.asyncio
-async def test_waveshare_relay_interval_restore_state_invalid_value():
+async def test_waveshare_relay_interval_restore_state_invalid_value() -> None:
     """Test restoring state with an invalid value."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -99,7 +103,7 @@ async def test_waveshare_relay_interval_restore_state_invalid_value():
 
 
 @pytest.mark.asyncio
-async def test_waveshare_relay_interval_restore_state_no_last_state():
+async def test_waveshare_relay_interval_restore_state_no_last_state() -> None:
     """Test restoring state when no last state is available."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -110,7 +114,7 @@ async def test_waveshare_relay_interval_restore_state_no_last_state():
 
 
 @pytest.mark.asyncio
-async def test_waveshare_relay_interval_set_native_value():
+async def test_waveshare_relay_interval_set_native_value() -> None:
     """Test setting native value."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -123,7 +127,7 @@ async def test_waveshare_relay_interval_set_native_value():
 
 
 @pytest.mark.asyncio
-async def test_waveshare_relay_interval_name():
+async def test_waveshare_relay_interval_name() -> None:
     """Test the name property."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -132,7 +136,7 @@ async def test_waveshare_relay_interval_name():
 
 
 @pytest.mark.asyncio
-async def test_waveshare_relay_interval_native_min_value():
+async def test_waveshare_relay_interval_native_min_value() -> None:
     """Test the native_min_value property."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -141,7 +145,7 @@ async def test_waveshare_relay_interval_native_min_value():
 
 
 @pytest.mark.asyncio
-async def test_waveshare_relay_interval_native_max_value():
+async def test_waveshare_relay_interval_native_max_value() -> None:
     """Test the native_max_value property."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -150,7 +154,7 @@ async def test_waveshare_relay_interval_native_max_value():
 
 
 @pytest.mark.asyncio
-async def test_waveshare_relay_interval_native_step():
+async def test_waveshare_relay_interval_native_step() -> None:
     """Test the native_step property."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -159,7 +163,7 @@ async def test_waveshare_relay_interval_native_step():
 
 
 @pytest.mark.asyncio
-async def test_waveshare_relay_interval_mode():
+async def test_waveshare_relay_interval_mode() -> None:
     """Test the mode property."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
@@ -168,7 +172,7 @@ async def test_waveshare_relay_interval_mode():
 
 
 @pytest.mark.asyncio
-async def test_waveshare_relay_interval_native_unit_of_measurement():
+async def test_waveshare_relay_interval_native_unit_of_measurement() -> None:
     """Test the native_unit_of_measurement property."""
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
