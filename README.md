@@ -1,5 +1,8 @@
 # Waveshare Relay Home Assistant Integration
 
+[![codecov](https://codecov.io/gh/icecoldfire/HomeAssistant-Waveshare-Relay/graph/badge.svg?token=3GI4QXYCSS)](https://codecov.io/gh/icecoldfire/HomeAssistant-Waveshare-Relay)
+
+
 This is a custom integration for Home Assistant to control the Waveshare Modbus POE ETH Relay Board. It allows you to control relay channels and configure flash intervals directly from Home Assistant.
 
 ## Features

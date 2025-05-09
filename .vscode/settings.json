@@ -6,4 +6,7 @@
         "**/node_modules": true,
         "**/venv": true,
     },
+    "files.associations": {
+        "*.yaml": "home-assistant"
+    },
 }
