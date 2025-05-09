@@ -15,6 +15,10 @@
     "error": {
       "cannot_connect": "Failed to connect to the device.",
       "unknown": "An unknown error occurred."
+    },
+      "abort": {
+        "entry_not_found": "The configuration entry was not found.",
+        "reconfigured": "The configuration has been updated."
     }
   }
 }
