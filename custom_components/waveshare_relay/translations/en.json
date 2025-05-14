@@ -10,6 +10,18 @@
           "device_name": "Device Name",
           "channels": "Number of Channels"
         }
+      },      
+      "reconfigure": {
+        "title": "Reconfigure Waveshare Relay",
+        "description": "Reconfigure your Waveshare Relay device.",
+        "data": {
+          "ip_address": "IP Address",
+          "port": "Port",
+          "device_name": "Device Name",
+          "channels": "Number of Channels"
+        },        
+        "reconfigured": "The configuration has been updated.",
+        "entry_not_found": "The configuration entry was not found."
       }
     },
     "error": {

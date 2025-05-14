@@ -10,6 +10,18 @@
           "device_name": "Gerätename",
           "channels": "Anzahl der Kanäle"
         }
+      },
+      "reconfigure": {
+        "title": "Waveshare Relais neu konfigurieren",
+        "description": "Konfigurieren Sie Ihr Waveshare Relaisgerät neu.",
+        "data": {
+          "ip_address": "IP-Adresse",
+          "port": "Port",
+          "device_name": "Gerätename",
+          "channels": "Anzahl der Kanäle"
+        },
+        "reconfigured":"Die Konfiguration wurde aktualisiert.",        
+        "entry_not_found": "Der Konfigurationseintrag wurde nicht gefunden."
       }
     },
     "error": {

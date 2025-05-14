@@ -10,6 +10,18 @@
           "device_name": "Apparaatnaam",
           "channels": "Aantal kanalen"
         }
+      },      
+      "reconfigure": {
+        "title": "Waveshare Relay instellingen bijwerken",
+        "description": "Herconfigueer Waveshare Relay apparaat.",
+        "data": {
+          "ip_address": "IP-Adres",
+          "port": "Poort",
+          "device_name": "Apparaatnaam",
+          "channels": "Aantal kanalen"
+        },
+        "reconfigured": "De configuratie is bijgewerkt.",
+        "entry_not_found": "De configuratie-invoer is niet gevonden."
       }
     },
     "error": {
