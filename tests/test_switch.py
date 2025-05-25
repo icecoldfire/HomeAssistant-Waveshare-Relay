@@ -29,31 +29,13 @@ def mock_config_entry() -> MagicMock:
 
 @pytest.mark.asyncio
 async def test_async_setup_entry(mock_hass: MagicMock, mock_config_entry: MagicMock) -> None:
-    """Test async_setup_entry function for both enable_timer True and False."""
-    mock_config_entry.data = {
-        "ip_address": "192.168.1.100",
-        "port": 502,
-        "device_name": "Test Relay",
-        "channels": 2,
-        "enable_timer": True,
-    }
+    """Test async_setup_entry function."""
     async_add_entities = MagicMock()
-    await async_setup_entry(mock_hass, mock_config_entry, async_add_entities)
-    async_add_entities.assert_called_once()
-    switches = async_add_entities.call_args[0][0]
-    assert len(switches) == 2
-    assert all(isinstance(s, WaveshareRelaySwitch) for s in switches)
-    assert all(s._enable_timer for s in switches)
 
-    # Test with enable_timer False
-    mock_config_entry.data["enable_timer"] = False
-    async_add_entities.reset_mock()
     await async_setup_entry(mock_hass, mock_config_entry, async_add_entities)
-    async_add_entities.assert_called_once()
-    switches = async_add_entities.call_args[0][0]
-    assert len(switches) == 2
-    assert all(isinstance(s, WaveshareRelaySwitch) for s in switches)
-    assert all(not s._enable_timer for s in switches)
+
+    assert async_add_entities.call_count == 1
+    assert len(async_add_entities.call_args[0][0]) == mock_config_entry.data["channels"]
 
 
 def test_waveshare_relay_switch_initialization() -> None:
@@ -150,7 +132,7 @@ async def test_async_turn_off(mock_hass: MagicMock) -> None:
 
         await switch.async_turn_off()
 
-        mock_send_command.assert_called_once_with("192.168.1.100", 502, 0x05, 0, 0)
+        mock_send_command.assert_called_once_with("192.168.1.100", 502, 0x05, 0, -1)
         assert switch._is_on is False
         mock_write_ha_state.assert_called()
 

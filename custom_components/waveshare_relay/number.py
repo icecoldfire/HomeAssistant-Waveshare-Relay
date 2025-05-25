@@ -69,7 +69,7 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
 
     @property
     def name(self) -> str:
-        """Return the name of the sensor."""
+        """Return the name of the number."""
         return f"{self._relay_channel + 1} Interval"
 
     async def async_added_to_hass(self) -> None:
