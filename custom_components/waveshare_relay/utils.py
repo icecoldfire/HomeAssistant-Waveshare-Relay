@@ -54,6 +54,21 @@ def _send_modbus_command(ip_address: str, port: int, function_code: int, relay_a
 
     if function_code == 0x05:
         # Command to control relay
+        relay_command = 0x00
+        print(f'Interval for relay {relay_address}: {interval} seconds')
+
+        # Default relay command is to turn off the relay
+        relay_interval_high = 0x00
+        relay_interval_low = 0x00
+        if interval == 0:
+            # Zero interval is used to turn the relay permanently on
+            relay_interval_high = 0xFF
+        elif interval > 0:
+            # Positive interval is used to flash the relay
+            relay_command = 0x02  # Flash Command (02 for on)
+            relay_interval_high = (interval >> 8) & 0xFF
+            relay_interval_low = interval & 0xFF
+
         message = [
             transaction_id >> 8,
             transaction_id & 0xFF,  # Transaction Identifier
@@ -63,10 +78,10 @@ def _send_modbus_command(ip_address: str, port: int, function_code: int, relay_a
             length & 0xFF,  # Length
             unit_id,  # Unit Identifier
             function_code,  # Command
-            0x02 if interval != 0 else 0x00,  # Flash Command (02 for on)
+            relay_command,
             relay_address,  # Relay Address
-            (interval >> 8) & 0xFF if interval != 0 else 0x00,  # Interval Time
-            interval & 0xFF if interval != 0 else 0x00,  # Interval Time
+            relay_interval_high,  # High byte of interval
+            relay_interval_low,  # Low byte of interval
         ]
     else:
         # Command to read device address or software version
