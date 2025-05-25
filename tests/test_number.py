@@ -1,5 +1,5 @@
 from typing import Generator
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -61,23 +61,6 @@ def test_waveshare_relay_interval_unique_id() -> None:
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
 
     assert interval.unique_id == f"{DOMAIN}_192.168.1.100_0_interval"
-
-
-def test_waveshare_relay_interval_device_info() -> None:
-    """Test device_info property."""
-    hass = MagicMock()
-    with (
-        patch("custom_components.waveshare_relay.number._read_device_address", return_value=1),
-        patch("custom_components.waveshare_relay.number._read_software_version", return_value="1.0"),
-    ):
-        interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
-        device_info = interval.device_info
-
-        assert device_info["identifiers"] == {(DOMAIN, "192.168.1.100")}
-        assert device_info["name"] == "Test Relay"
-        assert device_info["model"] == "Modbus POE ETH Relay"
-        assert device_info["manufacturer"] == "Waveshare"
-        assert device_info["sw_version"] == "1.0"
 
 
 @pytest.mark.asyncio
@@ -177,4 +160,96 @@ async def test_waveshare_relay_interval_native_unit_of_measurement() -> None:
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
 
+    assert interval.native_unit_of_measurement == "s"
+
+
+@pytest.mark.asyncio
+async def test_device_info_after_async_added_to_hass():
+    hass = MagicMock()
+    with (
+        patch("custom_components.waveshare_relay.number._read_device_address", new_callable=AsyncMock, return_value=1),
+        patch("custom_components.waveshare_relay.number._read_software_version", new_callable=AsyncMock, return_value="1.0"),
+    ):
+        interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
+        await interval.async_added_to_hass()
+        device_info = interval.device_info
+        assert device_info["sw_version"] == "1.0"
+        assert device_info["identifiers"] == {(DOMAIN, "192.168.1.100")}
+        assert device_info["name"] == "Test Relay"
+        assert device_info["model"] == "Modbus POE ETH Relay"
+        assert device_info["manufacturer"] == "Waveshare"
+
+
+@pytest.mark.asyncio
+async def test__async_load_device_info_handles_exceptions():
+    hass = MagicMock()
+    with (
+        patch("custom_components.waveshare_relay.number._read_device_address", new_callable=AsyncMock, side_effect=Exception("fail")),
+        patch("custom_components.waveshare_relay.number._read_software_version", new_callable=AsyncMock, side_effect=Exception("fail")),
+    ):
+        interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
+        await interval._async_load_device_info()
+        assert interval._device_address is None
+        assert interval._sw_version is None
+
+
+@pytest.mark.asyncio
+async def test_async_added_to_hass_restore_state():
+    hass = MagicMock()
+    interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
+    with patch.object(RestoreEntity, "async_get_last_state", return_value=MagicMock(state="10")):
+        with (
+            patch("custom_components.waveshare_relay.number._read_device_address", new_callable=AsyncMock, return_value=1),
+            patch("custom_components.waveshare_relay.number._read_software_version", new_callable=AsyncMock, return_value="1.0"),
+        ):
+            await interval.async_added_to_hass()
+            assert interval.native_value == 10
+
+
+@pytest.mark.asyncio
+async def test_async_added_to_hass_restore_state_invalid():
+    hass = MagicMock()
+    interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
+    with patch.object(RestoreEntity, "async_get_last_state", return_value=MagicMock(state="invalid")):
+        with (
+            patch("custom_components.waveshare_relay.number._read_device_address", new_callable=AsyncMock, return_value=1),
+            patch("custom_components.waveshare_relay.number._read_software_version", new_callable=AsyncMock, return_value="1.0"),
+        ):
+            await interval.async_added_to_hass()
+            assert interval.native_value == 5
+
+
+@pytest.mark.asyncio
+async def test_async_added_to_hass_restore_state_none():
+    hass = MagicMock()
+    interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
+    with patch.object(RestoreEntity, "async_get_last_state", return_value=None):
+        with (
+            patch("custom_components.waveshare_relay.number._read_device_address", new_callable=AsyncMock, return_value=1),
+            patch("custom_components.waveshare_relay.number._read_software_version", new_callable=AsyncMock, return_value="1.0"),
+        ):
+            await interval.async_added_to_hass()
+            assert interval.native_value == 5
+
+
+@pytest.mark.asyncio
+async def test_async_set_native_value():
+    hass = MagicMock()
+    interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
+    interval.entity_id = "number.test_relay_0_interval"
+    with patch.object(interval, "async_write_ha_state") as mock_write_ha_state:
+        await interval.async_set_native_value(15)
+        assert interval.native_value == 15
+        mock_write_ha_state.assert_called_once()
+
+
+def test_all_properties():
+    hass = MagicMock()
+    interval = WaveshareRelayInterval(hass, "ip", 1, "name", 2)
+    assert interval.unique_id == "waveshare_relay_ip_2_interval"
+    assert interval.name == "3 Interval"
+    assert interval.native_min_value == 0
+    assert interval.native_max_value == 600
+    assert interval.native_step == 1
+    assert interval.mode == "slider"
     assert interval.native_unit_of_measurement == "s"

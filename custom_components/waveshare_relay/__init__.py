@@ -26,13 +26,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         with socket.create_connection((ip_address, port), timeout=5):
             _LOGGER.info("Connection to %s:%s successful", ip_address, port)
     except Exception as e:
-        _LOGGER.error(
-            "Failed to connect to %s:%s during setup: %s", ip_address, port, e)
+        _LOGGER.error("Failed to connect to %s:%s during setup: %s", ip_address, port, e)
         return False
 
     # Forward the setup to the switch platform
-    hass.async_create_task(hass.config_entries.async_forward_entry_setups(
-        entry, ["switch", "number", "sensor"]))
+    hass.async_create_task(hass.config_entries.async_forward_entry_setups(entry, ["switch", "number", "sensor"]))
 
     # Set up polling interval
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
@@ -44,6 +42,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+    # Cancel the global polling task if it exists
+    domain_data = hass.data.get(DOMAIN, {})
+    polling_task = domain_data.get("relay_polling_task")
+    if polling_task:
+        polling_task.cancel()
+        try:
+            await polling_task
+        except Exception:
+            pass
     # Unload both the switch and number platforms
     unload_ok = await hass.config_entries.async_forward_entry_unload(entry, "switch")
     unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "number")

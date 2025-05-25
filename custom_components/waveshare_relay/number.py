@@ -5,7 +5,7 @@ from homeassistant.components.number import NumberDeviceClass, NumberEntity, Num
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, DEFAULT_INTERVAL
 from .utils import _read_device_address, _read_software_version
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,6 +48,34 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
         self._attr_device_class = NumberDeviceClass.DURATION
         self._attr_native_unit_of_measurement = "s"
         self._attr_native_value: Optional[float] = None
+        self._device_address: Optional[int] = None
+        self._sw_version: Optional[str] = None
+
+    async def async_added_to_hass(self) -> None:
+        # Restore the previous state when Home Assistant starts
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state:
+            try:
+                self._attr_native_value = float(last_state.state)
+                _LOGGER.info("Restored %s to %s seconds", self.name, self._attr_native_value)
+            except ValueError:
+                _LOGGER.warning("Could not restore state for %s", self.name)
+                self._attr_native_value = DEFAULT_INTERVAL
+        else:
+            self._attr_native_value = DEFAULT_INTERVAL
+        await self._async_load_device_info()
+
+    async def _async_load_device_info(self) -> None:
+        try:
+            self._device_address = await _read_device_address(self._ip_address, self._port)
+        except Exception as e:
+            _LOGGER.warning(f"Failed to read device address: {e}")
+            self._device_address = None
+        try:
+            self._sw_version = await _read_software_version(self._ip_address, self._port)
+        except Exception as e:
+            _LOGGER.warning(f"Failed to read software version: {e}")
+            self._sw_version = None
 
     @property
     def unique_id(self) -> str:
@@ -56,34 +84,18 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        _read_device_address(self._ip_address, self._port)
-        software_version = _read_software_version(self._ip_address, self._port)
-
         return DeviceInfo(
             identifiers={(DOMAIN, self._ip_address)},
             name=self._device_name,  # Use the custom device name
             model="Modbus POE ETH Relay",
             manufacturer="Waveshare",
-            sw_version=software_version or "unknown",
+            sw_version=self._sw_version or "unknown",
         )
 
     @property
     def name(self) -> str:
         """Return the name of the number."""
         return f"{self._relay_channel + 1} Interval"
-
-    async def async_added_to_hass(self) -> None:
-        """Restore the previous state when Home Assistant starts."""
-        last_state = await self.async_get_last_state()
-        if last_state and last_state.state:
-            try:
-                self._attr_native_value = float(last_state.state)
-                _LOGGER.info("Restored %s to %s seconds", self.name, self._attr_native_value)
-            except ValueError:
-                _LOGGER.warning("Could not restore state for %s", self.name)
-                self._attr_native_value = 5
-        else:
-            self._attr_native_value = 5
 
     @property
     def native_value(self) -> Optional[float]:

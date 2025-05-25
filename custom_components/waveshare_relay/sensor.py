@@ -9,7 +9,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import EventStateChangedData, async_track_state_change_event
 
-from .const import DOMAIN
+from .const import DOMAIN, DEFAULT_INTERVAL
 from .utils import _read_device_address, _read_software_version
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,6 +50,8 @@ class WaveshareRelayTimer(SensorEntity):
         self._attr_native_value: int = 0
         self._timer_task: Optional[asyncio.Task[None]] = None
         self.native_unit_of_measurement: str = UnitOfTime.SECONDS
+        self._device_address: Optional[int] = None
+        self._sw_version: Optional[str] = None
 
         # Track the state of the corresponding switch
         unique_id: str = f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_switch"
@@ -61,6 +63,21 @@ class WaveshareRelayTimer(SensorEntity):
         else:
             _LOGGER.error("Could not find entity with unique_id: %s", unique_id)
 
+    async def async_added_to_hass(self) -> None:
+        await self._async_load_device_info()
+
+    async def _async_load_device_info(self) -> None:
+        try:
+            self._device_address = await _read_device_address(self._ip_address, self._port)
+        except Exception as e:
+            _LOGGER.warning(f"Failed to read device address: {e}")
+            self._device_address = None
+        try:
+            self._sw_version = await _read_software_version(self._ip_address, self._port)
+        except Exception as e:
+            _LOGGER.warning(f"Failed to read software version: {e}")
+            self._sw_version = None
+
     @property
     def unique_id(self) -> str:
         """Return a unique ID for this sensor."""
@@ -68,15 +85,12 @@ class WaveshareRelayTimer(SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        _read_device_address(self._ip_address, self._port)
-        software_version = _read_software_version(self._ip_address, self._port)
-
         return DeviceInfo(
             identifiers={(DOMAIN, self._ip_address)},
-            name=self._device_name,  # Use the custom device name
+            name=self._device_name,
             model="Modbus POE ETH Relay",
             manufacturer="Waveshare",
-            sw_version=software_version or "unknown",
+            sw_version=self._sw_version or "unknown",
         )
 
     @property
@@ -107,16 +121,16 @@ class WaveshareRelayTimer(SensorEntity):
                             entity_id,
                             interval_state.state,
                         )
-                        interval = 5  # Default to 5 seconds if conversion fails
+                        interval = DEFAULT_INTERVAL
                 else:
-                    interval = 5  # Default to 5 seconds if not found
+                    interval = DEFAULT_INTERVAL
             else:
                 _LOGGER.error("Could not find entity with unique_id: %s", unique_id)
-                interval = 5
+                interval = DEFAULT_INTERVAL
 
             # Start the countdown
             self._attr_native_value = interval
-            await self.async_write_ha_state()
+            self.async_write_ha_state()
 
             # Cancel any existing timer task
             if self._timer_task is not None:
@@ -129,7 +143,7 @@ class WaveshareRelayTimer(SensorEntity):
             if self._timer_task is not None:
                 self._timer_task.cancel()
             self._attr_native_value = 0
-            await self.async_write_ha_state()
+            self.async_write_ha_state()
 
     async def _countdown_timer(self, interval: int) -> None:
         """Countdown timer that updates every second."""
@@ -139,10 +153,10 @@ class WaveshareRelayTimer(SensorEntity):
                 await asyncio.sleep(1)
                 remaining_time -= 1
                 self._attr_native_value = remaining_time
-                await self.async_write_ha_state()  # Update the sensor state
+                self.async_write_ha_state()  # Update the sensor state
         except asyncio.CancelledError:
             _LOGGER.info("Countdown task for relay channel %d cancelled", self._relay_channel)
         finally:
             if remaining_time <= 0:
                 self._attr_native_value = 0
-                await self.async_write_ha_state()
+                self.async_write_ha_state()

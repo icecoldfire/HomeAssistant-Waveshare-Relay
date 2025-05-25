@@ -1,5 +1,5 @@
+import asyncio
 import logging
-import socket
 from typing import List, Optional
 
 from .const import MODBUS_EXCEPTION_MESSAGES
@@ -7,46 +7,50 @@ from .const import MODBUS_EXCEPTION_MESSAGES
 _LOGGER = logging.getLogger(__name__)
 
 
-def _send_modbus_message(ip_address: str, port: int, message: List[int], function_code: int) -> Optional[bytes]:
-    """Send a Modbus TCP message and return the response."""
+async def _send_modbus_message(ip_address: str, port: int, message: List[int], function_code: int) -> Optional[bytes]:
+    """Send a Modbus TCP message and return the response (async)."""
     try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            _LOGGER.debug("Attempting to connect to %s:%d", ip_address, port)
-            sock.connect((ip_address, port))
-            _LOGGER.debug("Connection established")
+        _LOGGER.debug("Attempting to connect to %s:%d", ip_address, port)
+        reader, writer = await asyncio.open_connection(ip_address, port)
+        _LOGGER.debug("Connection established")
 
-            _LOGGER.debug("Sending message: %s", bytes(message).hex())
-            sock.sendall(bytes(message))
+        _LOGGER.debug("Sending message: %s", bytes(message).hex())
+        writer.write(bytes(message))
+        await writer.drain()
 
-            response = sock.recv(1024)
-            _LOGGER.debug("Received response: %s", response.hex())
+        response = await reader.read(1024)
+        _LOGGER.debug("Received response: %s", response.hex())
 
-            # Check for exception response if function_code is provided
-            if len(response) == 9 and response[7] == (function_code + 0x80):
-                exception_code = response[8]
-                exception = MODBUS_EXCEPTION_MESSAGES.get(
-                    exception_code,
-                    {
-                        "name": "Unknown Exception",
-                        "description": "No description available",
-                    },
-                )
-                _LOGGER.error(
-                    "Modbus exception response: Code %02X - %s: %s.",
-                    exception_code,
-                    exception["name"],
-                    exception["description"],
-                )
-                return None
+        # Check for exception response if function_code is provided
+        if len(response) == 9 and response[7] == (function_code + 0x80):
+            exception_code = response[8]
+            exception = MODBUS_EXCEPTION_MESSAGES.get(
+                exception_code,
+                {
+                    "name": "Unknown Exception",
+                    "description": "No description available",
+                },
+            )
+            _LOGGER.error(
+                "Modbus exception response: Code %02X - %s: %s.",
+                exception_code,
+                exception["name"],
+                exception["description"],
+            )
+            writer.close()
+            await writer.wait_closed()
+            return None
 
-            return response
+        writer.close()
+        await writer.wait_closed()
+        return response
     except Exception as e:
         _LOGGER.error("Socket error: %s", e)
         return None
 
 
-def _send_modbus_command(ip_address: str, port: int, function_code: int, relay_address: int, interval: int = 0) -> Optional[bytes]:
-    """Send a Modbus TCP command and return the response."""
+async def _send_modbus_command(ip_address: str, port: int, function_code: int, relay_address: int, interval: int = 0) -> Optional[bytes]:
+    """Send a Modbus TCP command and return the response (async)."""
     transaction_id = 0x0001
     protocol_id = 0x0000
     length = 0x06  # Length of the remaining message (unit_id + function_code + data)
@@ -55,7 +59,6 @@ def _send_modbus_command(ip_address: str, port: int, function_code: int, relay_a
     if function_code == 0x05:
         # Command to control relay
         relay_command = 0x00
-        print(f'Interval for relay {relay_address}: {interval} seconds')
 
         # Default relay command is to turn off the relay
         relay_interval_high = 0x00
@@ -100,11 +103,11 @@ def _send_modbus_command(ip_address: str, port: int, function_code: int, relay_a
             0x01,  # Quantity of Registers
         ]
 
-    return _send_modbus_message(ip_address, port, message, function_code)
+    return await _send_modbus_message(ip_address, port, message, function_code)
 
 
-def _read_relay_status(ip_address: str, port: int, start_channel: int, num_channels: int) -> Optional[List[int]]:
-    """Send a Modbus TCP command to read the relay status for specific channels."""
+async def _read_relay_status(ip_address: str, port: int, start_channel: int, num_channels: int) -> Optional[List[int]]:
+    """Send a Modbus TCP command to read the relay status for specific channels (async)."""
     _LOGGER.debug(
         "Starting _read_relay_status with ip_address=%s, port=%d, start_channel=%d, num_channels=%d",
         ip_address,
@@ -144,7 +147,7 @@ def _read_relay_status(ip_address: str, port: int, start_channel: int, num_chann
 
     _LOGGER.debug("Constructed Modbus TCP message: %s", message)
 
-    response = _send_modbus_message(ip_address, port, message, function_code)
+    response = await _send_modbus_message(ip_address, port, message, function_code)
     if response is None:
         return None
 
@@ -167,17 +170,17 @@ def _read_relay_status(ip_address: str, port: int, start_channel: int, num_chann
     return relay_status
 
 
-def _read_device_address(ip_address: str, port: int) -> Optional[int]:
-    """Read the device address from the relay board."""
-    response = _send_modbus_command(ip_address, port, 0x03, 0x4000)
+async def _read_device_address(ip_address: str, port: int) -> Optional[int]:
+    """Read the device address from the relay board (async)."""
+    response = await _send_modbus_command(ip_address, port, 0x03, 0x4000)
     if response:
         return response[9]  # Device address is at this position in the response
     return None
 
 
-def _read_software_version(ip_address: str, port: int) -> Optional[str]:
-    """Read the software version from the relay board."""
-    response = _send_modbus_command(ip_address, port, 0x03, 0x8000)
+async def _read_software_version(ip_address: str, port: int) -> Optional[str]:
+    """Read the software version from the relay board (async)."""
+    response = await _send_modbus_command(ip_address, port, 0x03, 0x8000)
     if response:
         version = response[9] * 256 + response[10]
         return f"V{version / 100:.2f}"

@@ -1,3 +1,4 @@
+import asyncio
 from typing import Dict
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -9,6 +10,7 @@ from custom_components.waveshare_relay import (
     async_setup_entry,
     async_unload_entry,
 )
+from custom_components.waveshare_relay.const import DOMAIN
 
 
 @pytest.mark.asyncio
@@ -45,6 +47,7 @@ async def test_async_setup_entry_socket_failure() -> None:
 async def test_async_unload_entry() -> None:
     """Test async_unload_entry function."""
     hass: MagicMock = MagicMock(spec=HomeAssistant)
+    hass.data = {}  # Ensure hass.data exists as a dict
     entry: MagicMock = MagicMock(spec=ConfigEntry)
 
     with patch.object(
@@ -59,3 +62,20 @@ async def test_async_unload_entry() -> None:
         mock_unload.assert_any_call(entry, "switch")
         mock_unload.assert_any_call(entry, "number")
         mock_unload.assert_any_call(entry, "sensor")
+
+
+@pytest.mark.asyncio
+def test_async_unload_entry_cancels_polling_task():
+    """Test that async_unload_entry cancels the global polling task if present."""
+    hass = MagicMock()
+    hass.data = {DOMAIN: {"relay_polling_task": AsyncMock()}}
+    entry = MagicMock()
+    with patch.object(
+        hass.config_entries,
+        "async_forward_entry_unload",
+        new=AsyncMock(return_value=True),
+    ) as mock_unload:
+        result = asyncio.get_event_loop().run_until_complete(async_unload_entry(hass, entry))
+        assert result is True
+        assert mock_unload.call_count == 3
+        hass.data[DOMAIN]["relay_polling_task"].cancel.assert_called_once()

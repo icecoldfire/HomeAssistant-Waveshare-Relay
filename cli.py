@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import logging
 from typing import Optional
 
@@ -25,7 +26,7 @@ def main_menu(ip_address: str, port: int) -> None:
             start_channel = channel - 1
             num_channels = 1
 
-            relay_status: Optional[list[int]] = _read_relay_status(ip_address, port, start_channel, num_channels)
+            relay_status: Optional[list[int]] = asyncio.run(_read_relay_status(ip_address, port, start_channel, num_channels))
             if relay_status is not None:
                 print(f"Status of channel {channel}: {relay_status[0]}")
             else:
@@ -34,11 +35,10 @@ def main_menu(ip_address: str, port: int) -> None:
         elif choice == "2":
             channel = int(input("Enter channel number (1-based index): "))
             interval = int(input("Enter interval for the command in seconds [-1 for permanent off, 0 for permanent on]: "))
-
             relay_address = channel - 1
             interval_deciseconds = interval * 10  # Convert seconds to deciseconds
 
-            response: Optional[bytes] = _send_modbus_command(ip_address, port, 0x05, relay_address, interval_deciseconds)
+            response: Optional[bytes] = asyncio.run(_send_modbus_command(ip_address, port, 0x05, relay_address, interval_deciseconds))
             if response is not None:
                 print(f"Command sent to channel {channel} with interval {interval} seconds.")
             else:
