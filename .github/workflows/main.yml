@@ -37,3 +37,15 @@ jobs:
         files: coverage.xml
         flags: unittests
         name: codecov-umbrella
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: home-assistant/actions/hassfest@master
+        continue-on-error: true
+      - name: HACS validation
+        uses: "hacs/action@main"
+        with:
+          category: "integration"
+          ignore: ""

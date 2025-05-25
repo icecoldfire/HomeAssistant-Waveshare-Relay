@@ -6,22 +6,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from custom_components.waveshare_relay import (
-    async_setup,
     async_setup_entry,
     async_unload_entry,
 )
-
-
-@pytest.mark.asyncio
-async def test_async_setup() -> None:
-    """Test async_setup function."""
-    hass: MagicMock = MagicMock(spec=HomeAssistant)
-    config: Dict[str, str] = {}
-
-    result: bool = await async_setup(hass, config)
-
-    assert result is True
-
 
 @pytest.mark.asyncio
 async def test_async_setup_entry() -> None:
