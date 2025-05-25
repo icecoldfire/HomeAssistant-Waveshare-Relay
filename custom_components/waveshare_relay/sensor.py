@@ -116,7 +116,7 @@ class WaveshareRelayTimer(SensorEntity):
 
             # Start the countdown
             self._attr_native_value = interval
-            self.async_write_ha_state()
+            await self.async_write_ha_state()
 
             # Cancel any existing timer task
             if self._timer_task is not None:
@@ -129,7 +129,7 @@ class WaveshareRelayTimer(SensorEntity):
             if self._timer_task is not None:
                 self._timer_task.cancel()
             self._attr_native_value = 0
-            self.async_write_ha_state()
+            await self.async_write_ha_state()
 
     async def _countdown_timer(self, interval: int) -> None:
         """Countdown timer that updates every second."""
@@ -139,10 +139,10 @@ class WaveshareRelayTimer(SensorEntity):
                 await asyncio.sleep(1)
                 remaining_time -= 1
                 self._attr_native_value = remaining_time
-                self.async_write_ha_state()  # Update the sensor state
+                await self.async_write_ha_state()  # Update the sensor state
         except asyncio.CancelledError:
             _LOGGER.info("Countdown task for relay channel %d cancelled", self._relay_channel)
         finally:
             if remaining_time <= 0:
                 self._attr_native_value = 0
-                self.async_write_ha_state()
+                await self.async_write_ha_state()

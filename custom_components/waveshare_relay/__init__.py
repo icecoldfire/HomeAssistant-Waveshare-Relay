@@ -1,22 +1,15 @@
 """The Waveshare Relay integration."""
 
+from .const import DOMAIN
 import logging
 import socket
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN, SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
-
-
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the Waveshare Relay integration from YAML configuration."""
-    # Typically used for YAML configuration setup, if applicable
-
-    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -34,11 +27,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         with socket.create_connection((ip_address, port), timeout=5):
             _LOGGER.info("Connection to %s:%s successful", ip_address, port)
     except Exception as e:
-        _LOGGER.error("Failed to connect to %s:%s during setup: %s", ip_address, port, e)
+        _LOGGER.error(
+            "Failed to connect to %s:%s during setup: %s", ip_address, port, e)
         return False
 
     # Forward the setup to the switch platform
-    hass.async_create_task(hass.config_entries.async_forward_entry_setups(entry, ["switch", "number", "sensor"]))
+    hass.async_create_task(hass.config_entries.async_forward_entry_setups(
+        entry, ["switch", "number", "sensor"]))
 
     # Set up polling interval
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
