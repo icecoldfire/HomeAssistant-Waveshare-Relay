@@ -17,7 +17,7 @@ DATA_SCHEMA = vol.Schema(
         vol.Required("port", default=502): vol.Coerce(int),
         vol.Required("device_name", default="Waveshare Relay"): vol.Coerce(str),
         vol.Required("channels", default=8): vol.All(vol.Coerce(int), vol.Range(min=1, max=32)),
-        vol.Required("enable_timer", default=True): vol.Boolean(),
+        vol.Required("enable_timer", default=True): vol.Coerce(bool),
     }
 )
 
@@ -112,11 +112,11 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         data_schema = vol.Schema(
             {
-                vol.Required("ip_address", default=current_entry.data["ip_address"]): vol.Coerce(str),
-                vol.Required("port", default=current_entry.data["port"]): vol.Coerce(int),
-                vol.Required("device_name", default=current_entry.data["device_name"]): vol.Coerce(str),
-                vol.Required("channels", default=current_entry.data["channels"]): vol.All(vol.Coerce(int), vol.Range(min=1, max=32)),
-                vol.Required("enable_timer", default=current_entry.data.get("enable_timer", True)): vol.Boolean(),
+                vol.Required("ip_address", default=current_entry.data.get("ip_address", "")): vol.Coerce(str),
+                vol.Required("port", default=current_entry.data.get("port", 502)): vol.Coerce(int),
+                vol.Required("device_name", default=current_entry.data.get("device_name", "Waveshare Relay")): vol.Coerce(str),
+                vol.Required("channels", default=current_entry.data.get("channels", 8)): vol.All(vol.Coerce(int), vol.Range(min=1, max=32)),
+                vol.Required("enable_timer", default=current_entry.data.get("enable_timer", True)): vol.Coerce(bool),
             }
         )
 
