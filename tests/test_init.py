@@ -10,6 +10,7 @@ from custom_components.waveshare_relay import (
     async_unload_entry,
 )
 
+
 @pytest.mark.asyncio
 async def test_async_setup_entry() -> None:
     """Test async_setup_entry function."""

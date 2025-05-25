@@ -1,6 +1,5 @@
 """The Waveshare Relay integration."""
 
-from .const import DOMAIN
 import logging
 import socket
 
