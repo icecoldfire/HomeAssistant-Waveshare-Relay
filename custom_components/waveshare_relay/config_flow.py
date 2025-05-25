@@ -10,13 +10,14 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-# Schema for user inputs, including IP address, port, device name, and channels
+# Schema for user inputs, including IP address, port, device name, channels, and enable_timer
 DATA_SCHEMA = vol.Schema(
     {
         vol.Required("ip_address"): vol.Coerce(str),
         vol.Required("port", default=502): vol.Coerce(int),
         vol.Required("device_name", default="Waveshare Relay"): vol.Coerce(str),
         vol.Required("channels", default=8): vol.All(vol.Coerce(int), vol.Range(min=1, max=32)),
+        vol.Required("enable_timer", default=True): vol.Boolean(),
     }
 )
 
@@ -54,6 +55,7 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                 "port": user_input["port"],
                                 "device_name": user_input["device_name"],
                                 "channels": user_input["channels"],
+                                "enable_timer": user_input["enable_timer"],
                             },
                         )
                 except CannotConnect:
@@ -93,6 +95,7 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                 "port": user_input["port"],
                                 "device_name": user_input["device_name"],
                                 "channels": user_input["channels"],
+                                "enable_timer": user_input["enable_timer"],
                             },
                             reason="reconfigured",
                         )
@@ -113,6 +116,7 @@ class WaveshareRelayConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required("port", default=current_entry.data["port"]): vol.Coerce(int),
                 vol.Required("device_name", default=current_entry.data["device_name"]): vol.Coerce(str),
                 vol.Required("channels", default=current_entry.data["channels"]): vol.All(vol.Coerce(int), vol.Range(min=1, max=32)),
+                vol.Required("enable_timer", default=current_entry.data.get("enable_timer", True)): vol.Boolean(),
             }
         )
 

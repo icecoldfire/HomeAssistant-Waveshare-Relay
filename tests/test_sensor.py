@@ -31,12 +31,28 @@ def mock_config_entry() -> MagicMock:
 
 @pytest.mark.asyncio
 async def test_async_setup_entry(mock_hass: MagicMock, mock_config_entry: MagicMock) -> None:
-    """Test async_setup_entry function."""
+
+
+
+    """Test async_setup_entry function for both enable_timer True and False."""
+    # Test with enable_timer True (default)
+    mock_config_entry.data = {
+        "ip_address": "192.168.1.100",
+        "port": 502,
+        "device_name": "Test Relay",
+        "channels": 2,
+        "enable_timer": True,
+    }
     async_add_entities = MagicMock()
-
     await async_setup_entry(mock_hass, mock_config_entry, async_add_entities)
+    async_add_entities.assert_called_once()
+    assert len(async_add_entities.call_args[0][0]) == 2
 
-    assert async_add_entities.call_count == 1
+    # Test with enable_timer False
+    mock_config_entry.data["enable_timer"] = False
+    async_add_entities.reset_mock()
+    await async_setup_entry(mock_hass, mock_config_entry, async_add_entities)
+    async_add_entities.assert_not_called()
 
 
 def test_waveshare_relay_timer_initialization() -> None:

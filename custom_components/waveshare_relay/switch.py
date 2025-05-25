@@ -25,8 +25,9 @@ async def async_setup_entry(hass: Any, config_entry: Any, async_add_entities: An
     port: int = config_entry.data[CONF_PORT]
     device_name: str = config_entry.data["device_name"]
     relay_channels: int = config_entry.data["channels"]
+    enable_timer: bool = config_entry.data.get("enable_timer", True)
 
-    switches = [WaveshareRelaySwitch(hass, ip_address, port, relay_channel, device_name) for relay_channel in range(relay_channels)]
+    switches = [WaveshareRelaySwitch(hass, ip_address, port, relay_channel, device_name, enable_timer) for relay_channel in range(relay_channels)]
 
     async_add_entities(switches)
 
@@ -41,6 +42,7 @@ class WaveshareRelaySwitch(SwitchEntity):
         port: int,
         relay_channel: int,
         device_name: str,
+        enable_timer: bool = True,
     ) -> None:
         """Initialize the switch."""
         self.hass: Any = hass
@@ -50,6 +52,7 @@ class WaveshareRelaySwitch(SwitchEntity):
         self._relay_channel: int = relay_channel
         self._status_task: Optional[asyncio.Task[None]] = None
         self._device_name: str = device_name
+        self._enable_timer: bool = enable_timer
 
     async def async_added_to_hass(self) -> None:
         """Subscribe to events when the entity is added to Home Assistant."""
@@ -88,28 +91,29 @@ class WaveshareRelaySwitch(SwitchEntity):
         return self._is_on
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        unique_id = f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_interval"
-        entity_registry = er.async_get(self.hass)
-        entity_id = entity_registry.async_get_entity_id("number", DOMAIN, unique_id)
+        interval = 5
+        if self._enable_timer:
+            unique_id = f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_interval"
+            entity_registry = er.async_get(self.hass)
+            entity_id = entity_registry.async_get_entity_id("number", DOMAIN, unique_id)
 
-        if entity_id:
-            interval_state = self.hass.states.get(entity_id)
-            if interval_state:
-                try:
-                    interval = int(float(interval_state.state))
-                except ValueError:
-                    _LOGGER.error(
-                        "Invalid interval value for %s: %s",
-                        entity_id,
-                        interval_state.state,
-                    )
+            if entity_id:
+                interval_state = self.hass.states.get(entity_id)
+                if interval_state:
+                    try:
+                        interval = int(float(interval_state.state))
+                    except ValueError:
+                        _LOGGER.error(
+                            "Invalid interval value for %s: %s",
+                            entity_id,
+                            interval_state.state,
+                        )
+                        interval = 5
+                else:
                     interval = 5
             else:
+                _LOGGER.error("Could not find entity with unique_id: %s", unique_id)
                 interval = 5
-        else:
-            _LOGGER.error("Could not find entity with unique_id: %s", unique_id)
-            interval = 5
-
         await self.hass.async_add_executor_job(
             _send_modbus_command,
             self._ip_address,
