@@ -20,11 +20,13 @@ async def async_setup_entry(hass: Any, config_entry: Any, async_add_entities: An
     port: int = config_entry.data["port"]
     device_name: str = config_entry.data["device_name"]
     relay_channels: int = config_entry.data["channels"]
+    enable_timer: bool = config_entry.data.get("enable_timer", True)
 
-    timers: list[WaveshareRelayTimer] = [
-        WaveshareRelayTimer(hass, ip_address, port, device_name, relay_channel) for relay_channel in range(relay_channels)
-    ]
-    async_add_entities(timers)
+    if enable_timer:
+        timers: list[WaveshareRelayTimer] = [
+            WaveshareRelayTimer(hass, ip_address, port, device_name, relay_channel) for relay_channel in range(relay_channels)
+        ]
+        async_add_entities(timers)
 
 
 class WaveshareRelayTimer(SensorEntity):

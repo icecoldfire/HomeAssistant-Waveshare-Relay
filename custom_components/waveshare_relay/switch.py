@@ -62,7 +62,7 @@ class WaveshareRelaySwitch(SwitchEntity):
 
     @property
     def unique_id(self) -> str:
-        """Return a unique ID for this sensor."""
+        """Return a unique ID for this switch."""
         return f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_switch"
 
     @property
@@ -80,7 +80,7 @@ class WaveshareRelaySwitch(SwitchEntity):
 
     @property
     def name(self) -> str:
-        """Return the name of the sensor."""
+        """Return the name of the switch."""
         return f"{self._relay_channel + 1} Switch"
 
     @property
@@ -88,6 +88,7 @@ class WaveshareRelaySwitch(SwitchEntity):
         return self._is_on
 
     async def async_turn_on(self, **kwargs: Any) -> None:
+        interval = 5
         unique_id = f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_interval"
         entity_registry = er.async_get(self.hass)
         entity_id = entity_registry.async_get_entity_id("number", DOMAIN, unique_id)
@@ -109,7 +110,6 @@ class WaveshareRelaySwitch(SwitchEntity):
         else:
             _LOGGER.error("Could not find entity with unique_id: %s", unique_id)
             interval = 5
-
         await self.hass.async_add_executor_job(
             _send_modbus_command,
             self._ip_address,
@@ -131,7 +131,7 @@ class WaveshareRelaySwitch(SwitchEntity):
             self._port,
             0x05,
             self._relay_channel,
-            0,
+            -1, # -1 to turn off the relay
         )
         self._is_on = False
         self.async_write_ha_state()

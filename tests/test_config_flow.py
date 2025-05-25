@@ -66,6 +66,7 @@ def mock_config_entry() -> Callable[[str, str, int], ConfigEntry]:
             "port": PORT,
             "device_name": DEVICE_NAME,
             "channels": channels,
+            "enable_timer": True,
         }
         entry.source = "user"
         entry.unique_id = unique_id
@@ -101,6 +102,7 @@ def assert_create_entry_result(result: Dict[str, Any], title: str, data: Dict[st
                 "port": PORT,
                 "device_name": DEVICE_NAME,
                 "channels": CHANNELS,
+                "enable_timer": True,
             },
             {
                 "type": FlowResultType.CREATE_ENTRY,
@@ -110,6 +112,7 @@ def assert_create_entry_result(result: Dict[str, Any], title: str, data: Dict[st
                     "port": PORT,
                     "device_name": DEVICE_NAME,
                     "channels": CHANNELS,
+                    "enable_timer": True,
                 },
             },
         ),
@@ -119,6 +122,7 @@ def assert_create_entry_result(result: Dict[str, Any], title: str, data: Dict[st
                 "port": PORT,
                 "device_name": DEVICE_NAME,
                 "channels": INVALID_CHANNELS,
+                "enable_timer": True,
             },
             {"type": FlowResultType.FORM, "errors": {"channels": "invalid_channels"}},
         ),
@@ -211,6 +215,7 @@ async def test_reconfigure_step_valid_input(
         "port": PORT,
         "device_name": UPDATED_DEVICE_NAME,
         "channels": UPDATED_CHANNELS,
+        "enable_timer": True,
     }
 
     result = await setup_flow.async_step_reconfigure(user_input=user_input)

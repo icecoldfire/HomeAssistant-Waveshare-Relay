@@ -8,7 +8,8 @@
           "ip_address": "IP-Adres",
           "port": "Poort",
           "device_name": "Apparaatnaam",
-          "channels": "Aantal kanalen"
+          "channels": "Aantal kanalen",
+          "enable_timer": "Timer-sensor inschakelen"
         }
       },      
       "reconfigure": {
@@ -18,7 +19,8 @@
           "ip_address": "IP-Adres",
           "port": "Poort",
           "device_name": "Apparaatnaam",
-          "channels": "Aantal kanalen"
+          "channels": "Aantal kanalen",
+          "enable_timer": "Timer-sensor inschakelen"
         },
         "reconfigured": "De configuratie is bijgewerkt.",
         "entry_not_found": "De configuratie-invoer is niet gevonden."

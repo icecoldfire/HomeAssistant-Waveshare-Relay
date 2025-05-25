@@ -33,7 +33,7 @@ def main_menu(ip_address: str, port: int) -> None:
 
         elif choice == "2":
             channel = int(input("Enter channel number (1-based index): "))
-            interval = int(input("Enter interval for the command in seconds: "))
+            interval = int(input("Enter interval for the command in seconds [-1 for permanent off, 0 for permanent on]: "))
 
             relay_address = channel - 1
             interval_deciseconds = interval * 10  # Convert seconds to deciseconds

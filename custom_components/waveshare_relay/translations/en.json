@@ -8,7 +8,8 @@
           "ip_address": "IP Address",
           "port": "Port",
           "device_name": "Device Name",
-          "channels": "Number of Channels"
+          "channels": "Number of Channels",
+          "enable_timer": "Enable Timer Sensor"
         }
       },      
       "reconfigure": {
@@ -18,7 +19,8 @@
           "ip_address": "IP Address",
           "port": "Port",
           "device_name": "Device Name",
-          "channels": "Number of Channels"
+          "channels": "Number of Channels",
+          "enable_timer": "Enable Timer Sensor"
         },        
         "reconfigured": "The configuration has been updated.",
         "entry_not_found": "The configuration entry was not found."

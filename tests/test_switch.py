@@ -132,7 +132,7 @@ async def test_async_turn_off(mock_hass: MagicMock) -> None:
 
         await switch.async_turn_off()
 
-        mock_send_command.assert_called_once_with("192.168.1.100", 502, 0x05, 0, 0)
+        mock_send_command.assert_called_once_with("192.168.1.100", 502, 0x05, 0, -1)
         assert switch._is_on is False
         mock_write_ha_state.assert_called()
 

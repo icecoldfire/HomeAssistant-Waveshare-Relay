@@ -76,16 +76,44 @@ def test_send_modbus_command(mock_socket: MagicMock) -> None:
     assert response == b"\x00\x01\x00\x00\x00\x06\x01\x03\x02\x00\x01"
 
 
-def test_send_modbus_command_control_relay(mock_socket: MagicMock) -> None:
-    """Test _send_modbus_command for controlling a relay."""
+def test_send_modbus_command_control_relay_interval(mock_socket: MagicMock) -> None:
+    """Test _send_modbus_command for controlling a relay and check sent command."""
+    # Test with interval=10 (normal timer)
     mock_socket_instance = setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x05\x00\x00")
-
     with patch("custom_components.waveshare_relay.utils.socket.socket", mock_socket):
         response = _send_modbus_command("127.0.0.1", 502, 0x05, 0x01, interval=10)
-
+        # The command for interval=10 (deciseconds) should be 0x00 0x0A
+        expected_message = [0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x05, 0x02, 0x01, 0x00, 0x0A]
+        sent_bytes = bytes(expected_message)
+        mock_socket_instance.sendall.assert_called_with(sent_bytes)
     assert response == b"\x00\x01\x00\x00\x00\x06\x01\x05\x00\x00"
     mock_socket_instance.connect.assert_called_with(("127.0.0.1", 502))
-    mock_socket_instance.sendall.assert_called()
+
+
+def test_send_modbus_command_control_relay_on(mock_socket: MagicMock) -> None:
+    # Test with interval=0 (permanent on)
+    mock_socket_instance = setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x05\x00\x00")
+    with patch("custom_components.waveshare_relay.utils.socket.socket", mock_socket):
+        response = _send_modbus_command("127.0.0.1", 502, 0x05, 0x01, interval=0)
+        # The command for interval=0 (permanent on) should be 0xFF 0x00
+        expected_message = [0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x05, 0x00, 0x01, 0xFF, 0x00]
+        sent_bytes = bytes(expected_message)
+        mock_socket_instance.sendall.assert_called_with(sent_bytes)
+    assert response == b"\x00\x01\x00\x00\x00\x06\x01\x05\x00\x00"
+    mock_socket_instance.connect.assert_called_with(("127.0.0.1", 502))
+
+
+def test_send_modbus_command_control_relay_off(mock_socket: MagicMock) -> None:
+    # Test with interval=-1 (permanent off)
+    mock_socket_instance = setup_mock_response(mock_socket, b"\x00\x01\x00\x00\x00\x06\x01\x05\x00\x00")
+    with patch("custom_components.waveshare_relay.utils.socket.socket", mock_socket):
+        response = _send_modbus_command("127.0.0.1", 502, 0x05, 0x01, interval=-1)
+        # The command for interval=-1 (permanent off) should be 0x00 0x00
+        expected_message = [0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x05, 0x00, 0x01, 0x00, 0x00]
+        sent_bytes = bytes(expected_message)
+        mock_socket_instance.sendall.assert_called_with(sent_bytes)
+    assert response == b"\x00\x01\x00\x00\x00\x06\x01\x05\x00\x00"
+    mock_socket_instance.connect.assert_called_with(("127.0.0.1", 502))
 
 
 def test_read_relay_status(mock_socket: MagicMock) -> None:
