@@ -41,9 +41,9 @@ class WaveshareRelayInterval(RestoreEntity, NumberEntity):
         self._device_name = device_name
         self._relay_channel = relay_channel
         self._attr_editable = True
-        self._attr_mode = NumberMode.SLIDER
+        self._attr_mode = NumberMode.BOX
         self._attr_native_min_value = 0
-        self._attr_native_max_value = 600
+        self._attr_native_max_value = 6553.5 # Max interval value is 0xFFFF or 65535, this value needs to be multiplied with 100ms.
         self._attr_native_step = 1
         self._attr_device_class = NumberDeviceClass.DURATION
         self._attr_native_unit_of_measurement = "s"
