@@ -33,10 +33,10 @@ def main_menu(ip_address: str, port: int) -> None:
 
         elif choice == "2":
             channel = int(input("Enter channel number (1-based index): "))
-            interval = int(input("Enter interval for the command in seconds [-1 for permanent off, 0 for permanent on]: "))
+            interval = float(input("Enter interval for the command in seconds [-1 for permanent off, 0 for permanent on]: "))
 
             relay_address = channel - 1
-            interval_deciseconds = interval * 10  # Convert seconds to deciseconds
+            interval_deciseconds = int(interval * 10)  # Convert seconds to deciseconds
 
             response: Optional[bytes] = _send_modbus_command(ip_address, port, 0x05, relay_address, interval_deciseconds)
             if response is not None:

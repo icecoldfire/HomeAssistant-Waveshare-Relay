@@ -46,7 +46,17 @@ def _send_modbus_message(ip_address: str, port: int, message: List[int], functio
 
 
 def _send_modbus_command(ip_address: str, port: int, function_code: int, relay_address: int, interval: int = 0) -> Optional[bytes]:
-    """Send a Modbus TCP command and return the response."""
+    """
+    Send a Modbus TCP command and return the response.
+
+    Args:
+        ip_address (str): The IP address of the relay device.
+        port (int): The port number to connect to.
+        function_code (int): The Modbus function code.
+        relay_address (int): The address of the relay.
+        interval (int, optional): The interval in deciseconds (1/10th of a second) as an integer. Defaults to 0.
+            For relay control, this specifies the duration in deciseconds.
+    """
     transaction_id = 0x0001
     protocol_id = 0x0000
     length = 0x06  # Length of the remaining message (unit_id + function_code + data)
@@ -55,7 +65,7 @@ def _send_modbus_command(ip_address: str, port: int, function_code: int, relay_a
     if function_code == 0x05:
         # Command to control relay
         relay_command = 0x00
-        print(f'Interval for relay {relay_address}: {interval} seconds')
+        print(f"Interval for relay {relay_address}: {interval} seconds")
 
         # Default relay command is to turn off the relay
         relay_interval_high = 0x00

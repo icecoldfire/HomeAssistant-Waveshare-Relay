@@ -47,7 +47,7 @@ class WaveshareRelayTimer(SensorEntity):
         self._port: int = port
         self._device_name: str = device_name
         self._relay_channel: int = relay_channel
-        self._attr_native_value: int = 0
+        self._attr_native_value: float = 0
         self._timer_task: Optional[asyncio.Task[None]] = None
         self.native_unit_of_measurement: str = UnitOfTime.SECONDS
 
@@ -100,7 +100,7 @@ class WaveshareRelayTimer(SensorEntity):
                 interval_state = self.hass.states.get(entity_id)
                 if interval_state:
                     try:
-                        interval: int = int(float(interval_state.state))
+                        interval: float = float(interval_state.state)
                     except ValueError:
                         _LOGGER.error(
                             "Invalid interval value for %s: %s",
@@ -116,7 +116,7 @@ class WaveshareRelayTimer(SensorEntity):
 
             # Start the countdown
             self._attr_native_value = interval
-            await self.async_write_ha_state()
+            self.async_write_ha_state()
 
             # Cancel any existing timer task
             if self._timer_task is not None:
@@ -129,20 +129,20 @@ class WaveshareRelayTimer(SensorEntity):
             if self._timer_task is not None:
                 self._timer_task.cancel()
             self._attr_native_value = 0
-            await self.async_write_ha_state()
+            self.async_write_ha_state()
 
-    async def _countdown_timer(self, interval: int) -> None:
+    async def _countdown_timer(self, interval: float) -> None:
         """Countdown timer that updates every second."""
-        remaining_time: int = interval
+        remaining_time: float = interval
         try:
             while remaining_time > 0:
                 await asyncio.sleep(1)
                 remaining_time -= 1
                 self._attr_native_value = remaining_time
-                await self.async_write_ha_state()  # Update the sensor state
+                self.async_write_ha_state()  # Update the sensor state
         except asyncio.CancelledError:
             _LOGGER.info("Countdown task for relay channel %d cancelled", self._relay_channel)
         finally:
             if remaining_time <= 0:
                 self._attr_native_value = 0
-                await self.async_write_ha_state()
+                self.async_write_ha_state()

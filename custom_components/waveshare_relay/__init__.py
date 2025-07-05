@@ -26,13 +26,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         with socket.create_connection((ip_address, port), timeout=5):
             _LOGGER.info("Connection to %s:%s successful", ip_address, port)
     except Exception as e:
-        _LOGGER.error(
-            "Failed to connect to %s:%s during setup: %s", ip_address, port, e)
+        _LOGGER.error("Failed to connect to %s:%s during setup: %s", ip_address, port, e)
         return False
 
     # Forward the setup to the switch platform
-    hass.async_create_task(hass.config_entries.async_forward_entry_setups(
-        entry, ["switch", "number", "sensor"]))
+    hass.async_create_task(hass.config_entries.async_forward_entry_setups(entry, ["switch", "number", "sensor"]))
 
     # Set up polling interval
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
