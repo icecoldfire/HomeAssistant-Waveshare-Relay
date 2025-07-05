@@ -50,8 +50,8 @@ def test_waveshare_relay_interval_initialization() -> None:
     assert interval._device_name == "Test Relay"
     assert interval._relay_channel == 0
     assert interval._attr_native_min_value == 0
-    assert interval._attr_native_max_value == 600
-    assert interval._attr_native_step == 1
+    assert interval._attr_native_max_value == 6553.5
+    assert interval._attr_native_step == 0.1
     assert interval._attr_native_unit_of_measurement == "s"
 
 
@@ -150,7 +150,7 @@ async def test_waveshare_relay_interval_native_max_value() -> None:
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
 
-    assert interval.native_max_value == 600
+    assert interval.native_max_value == 6553.5
 
 
 @pytest.mark.asyncio
@@ -159,7 +159,7 @@ async def test_waveshare_relay_interval_native_step() -> None:
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
 
-    assert interval.native_step == 1
+    assert interval.native_step == 0.1
 
 
 @pytest.mark.asyncio
@@ -168,7 +168,7 @@ async def test_waveshare_relay_interval_mode() -> None:
     hass = MagicMock()
     interval = WaveshareRelayInterval(hass, "192.168.1.100", 502, "Test Relay", 0)
 
-    assert interval.mode == "slider"
+    assert interval.mode == "box"
 
 
 @pytest.mark.asyncio

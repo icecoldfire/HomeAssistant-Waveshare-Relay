@@ -88,7 +88,7 @@ class WaveshareRelaySwitch(SwitchEntity):
         return self._is_on
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        interval = 5
+        interval: float = 5
         unique_id = f"{DOMAIN}_{self._ip_address}_{self._relay_channel}_interval"
         entity_registry = er.async_get(self.hass)
         entity_id = entity_registry.async_get_entity_id("number", DOMAIN, unique_id)
@@ -97,7 +97,7 @@ class WaveshareRelaySwitch(SwitchEntity):
             interval_state = self.hass.states.get(entity_id)
             if interval_state:
                 try:
-                    interval = int(float(interval_state.state))
+                    interval = float(interval_state.state)
                 except ValueError:
                     _LOGGER.error(
                         "Invalid interval value for %s: %s",
@@ -110,13 +110,15 @@ class WaveshareRelaySwitch(SwitchEntity):
         else:
             _LOGGER.error("Could not find entity with unique_id: %s", unique_id)
             interval = 5
+
+        interval_deciseconds = int(interval * 10)  # Convert seconds to deciseconds
         await self.hass.async_add_executor_job(
             _send_modbus_command,
             self._ip_address,
             self._port,
             0x05,
             self._relay_channel,
-            interval * 10,
+            interval_deciseconds,
         )
         self._is_on = True
         self.async_write_ha_state()
@@ -131,7 +133,7 @@ class WaveshareRelaySwitch(SwitchEntity):
             self._port,
             0x05,
             self._relay_channel,
-            -1, # -1 to turn off the relay
+            -1,  # -1 to turn off the relay
         )
         self._is_on = False
         self.async_write_ha_state()
